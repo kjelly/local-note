@@ -7,13 +7,13 @@
     <meta name="theme-color" content="#2c3e50">
     <link rel="manifest" id="my-manifest-placeholder">
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBzdHlsZT0iYmFja2dyb3VuZDojMmMzZTUwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzM0NDk1ZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iNDAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjQwIiByPSI1IiBmaWxsPSIjMzQ5OGRiIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI3MCIgcj0iNSIgZmlsbD0iIzM0OThkYiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48cGF0aCBkPSJNMzAgNDAgTDUwIDMwIEw3MCA0MCBMNTAgNzAgWiIgc3Ryb2tlPSIjZWNmMGYxIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz48L3N2Zz4=">
-
+    
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js"></script>
 
     <style>
-        :root {
-            --sidebar-bg: #2c3e50; --sidebar-text: #ecf0f1; --active-item: #34495e;
+        :root { 
+            --sidebar-bg: #2c3e50; --sidebar-text: #ecf0f1; --active-item: #34495e; 
             --accent: #3498db; --border-color: #ddd;
             --sync-ok: #2ecc71; --sync-warn: #f1c40f; --sync-err: #e74c3c;
             --link-tag-bg: #e1f5fe; --link-tag-text: #0277bd;
@@ -21,7 +21,7 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; display: flex; overflow: hidden; background: #fff; font-size: 16px; }
-
+        
         #sidebar { width: 280px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); flex-shrink: 0; z-index: 100; transition: transform 0.3s ease; }
         #main { flex: 1; display: flex; position: relative; min-width: 0; width: 100%; overflow: hidden; }
         #noteContainer { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; transition: width 0.3s; }
@@ -30,7 +30,7 @@
 
         .sidebar-header { padding: 15px; background: rgba(0,0,0,0.1); }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-
+        
         #addBtn { background: var(--accent); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
         #batchActions { display: none; gap: 5px; flex: 1; justify-content: flex-end; }
         #deleteBatchBtn { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
@@ -38,7 +38,7 @@
 
         .data-controls { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
         .data-btn, #cloudBtn, #diskBtn, #gDriveBtn { flex: 1; min-width: 50px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ccc; font-size: 0.8rem; padding: 6px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; }
-
+        
         .synced { color: var(--sync-ok) !important; border-color: var(--sync-ok) !important; }
         .error { color: var(--sync-err) !important; border-color: var(--sync-err) !important; }
         .loading { color: var(--sync-warn) !important; border-color: var(--sync-warn) !important; }
@@ -55,11 +55,11 @@
         .note-info { flex: 1; overflow: hidden; pointer-events: none; }
         .note-item .title { font-weight: bold; display: block; margin-bottom: 4px; color: #fff; font-size: 1rem; }
         .note-item .preview { font-size: 0.8rem; opacity: 0.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-        .batch-checkbox { width: 20px; height: 20px; cursor: pointer; display: none; margin-right: 5px; }
+        .batch-checkbox { width: 20px; height: 20px; cursor: pointer; display: none; margin-right: 5px; } 
         .batch-mode .batch-checkbox { display: block; }
         .split-btn { opacity: 0.3; background: none; border: 1px solid #aaa; color: #fff; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer; z-index: 2; }
         .note-item:hover .split-btn { opacity: 1; }
-        .batch-mode .split-btn { display: none; }
+        .batch-mode .split-btn { display: none; } 
 
         #mobileHeader { display: none; height: 50px; background: #f8f9fa; border-bottom: 1px solid #ddd; align-items: center; padding: 0 15px; justify-content: space-between; flex-shrink: 0; }
         .hamburger-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #555; padding: 5px; }
@@ -74,7 +74,7 @@
         .tags-wrapper { flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .link-tag, .backlink-tag { padding: 3px 8px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.8rem; background: var(--link-tag-bg); color: var(--link-tag-text); }
         .backlink-tag { background: #f3e5f5; color: #7b1fa2; }
-
+        
         .add-link-wrapper { position: relative; }
         .add-link-btn { background: #eee; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #555; font-size: 0.85rem; }
         .link-search-dropdown { position: absolute; top: 100%; left: 0; width: 220px; background: white; border: 1px solid #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 1000; max-height: 200px; overflow-y: auto; display: none; margin-top: 5px; border-radius: 4px; }
@@ -90,7 +90,7 @@
         select.history-select { padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem; background: white; }
 
         #editor { flex: 1; padding: 20px; font-size: 17px; line-height: 1.6; border: none; outline: none; resize: none; color: #2c3e50; width: 100%; box-sizing: border-box; }
-
+        
         .split-header { padding: 10px; background: #f1f1f1; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
         .split-title { font-weight: bold; color: #555; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #splitEditor { flex: 1; padding: 20px; font-size: 15px; line-height: 1.6; border: none; resize: none; background: #fdfdfd; color: #444; }
@@ -188,7 +188,7 @@
                 <button id="deleteBatchBtn" onclick="deleteSelectedNotes()">確認刪除</button>
             </div>
         </div>
-
+        
         <button id="installAppBtn" style="display:none;width:100%;margin-top:10px;background:#27ae60;color:white;border:none;padding:8px;border-radius:4px;cursor:pointer;">📲 安裝 App</button>
 
         <div class="data-controls" style="margin-top:10px;">
@@ -300,7 +300,7 @@
 
     // --- App Variables ---
     const DB_KEY = 'local_brain_db_v20';
-    const MAX_HISTORY = 20;
+    const MAX_HISTORY = 20; 
     const HISTORY_INTERVAL = 60 * 1000;
     let notes = [];
     let activeNoteId = null;
@@ -333,7 +333,7 @@
         if(localStorage.getItem('lb_model')) elAiModel.value = localStorage.getItem('lb_model');
         const davCfg = localStorage.getItem('lb_webdav');
         if (davCfg) { try { webdavConfig = JSON.parse(davCfg); elDavUrl.value = webdavConfig.url; elDavUser.value = webdavConfig.user; elDavPass.value = webdavConfig.pass; if(webdavConfig.url) syncDown(); } catch(e) {} }
-
+        
         // Load Google Config
         const gCfg = localStorage.getItem('lb_gdrive');
         if (gCfg) {
@@ -372,7 +372,7 @@
 
     function handleAuthClick() {
         if(!googleConfig.clientId) return alert("Please set Client ID");
-
+        
         // Update Token Client if config changed
         tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: elGClientId.value,
@@ -383,7 +383,7 @@
                 await syncGoogleDrive();
             },
         });
-
+        
         if (gapi.client.getToken() === null) {
             tokenClient.requestAccessToken({prompt: 'consent'});
         } else {
@@ -407,13 +407,13 @@
             const q = `name = '${G_FILE_NAME}' and trashed = false`;
             const response = await gapi.client.drive.files.list({ 'pageSize': 10, 'fields': 'files(id, name)', 'q': q });
             const files = response.result.files;
-
+            
             if (files && files.length > 0) {
                 const fileId = files[0].id;
                 // 2. Download content
                 const fileContent = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
                 const cloudNotes = fileContent.result; // gapi automatically parses JSON if header is correct
-
+                
                 // Merge
                 if (Array.isArray(cloudNotes)) {
                     mergeNotes(cloudNotes);
@@ -431,18 +431,18 @@
                 // 4. Create new file
                 const fileMetadata = { 'name': G_FILE_NAME };
                 const media = { mimeType: 'application/json', body: JSON.stringify(notes) };
-
+                
                 // Simple upload not directly supported by gapi.client helper for multipart easily, using request
                 // For simplicity in this single file demo, we create empty file then update it, or use raw fetch.
                 // Using gapi multipart workaround:
-
+                
                 const boundary = '-------314159265358979323846';
                 const delimiter = "\r\n--" + boundary + "\r\n";
                 const close_delim = "\r\n--" + boundary + "--";
-
+                
                 const contentType = 'application/json';
                 const metadata = {'name': G_FILE_NAME, 'mimeType': contentType};
-
+                
                 const multipartRequestBody =
                     delimiter +
                     'Content-Type: application/json\r\n\r\n' +
@@ -524,7 +524,7 @@
         const now = Date.now(); const lastHist = note.history[0];
         if (newContent !== note.content) { if (((now - (lastHist?.timestamp||0)) >= HISTORY_INTERVAL) || !lastHist) { note.history.unshift({ time: new Date().toLocaleString(), timestamp: now, content: note.content }); if (note.history.length > MAX_HISTORY) note.history = note.history.slice(0, MAX_HISTORY); } }
         note.title = newTitle; note.content = newContent; note.updatedAt = new Date().toLocaleString();
-        sortNotes(); saveToStorage();
+        sortNotes(); saveToStorage(); 
         if(elSearchInput.value) renderList(getFilteredNotes()); else renderList(notes);
         updateHistoryUI(note); elStatus.innerText = '已儲存'; setTimeout(() => elStatus.innerText = '', 1500);
         if(webdavConfig.url) { clearTimeout(saveTimeout); saveTimeout = setTimeout(syncUp, 2000); }
@@ -536,7 +536,7 @@
     function updatePinUI(note) { if (note.pinned) { elPinBtn.classList.add('pinned'); elPinBtn.innerText = "📌"; } else { elPinBtn.classList.remove('pinned'); elPinBtn.innerText = "📌"; } }
     function sortNotes() { notes.sort((a, b) => { if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1; return new Date(b.updatedAt) - new Date(a.updatedAt); }); }
     function mergeNotes(remoteNotes) { let changes = 0; remoteNotes.forEach(rNote => { const localIdx = notes.findIndex(n => n.id === rNote.id); if (localIdx === -1) { notes.push(rNote); changes++; } else { const lDate = new Date(notes[localIdx].updatedAt).getTime(); const rDate = new Date(rNote.updatedAt).getTime(); if (rDate > lDate) { notes[localIdx] = rNote; changes++; } } }); sortNotes(); if(changes > 0) { saveToStorage(); renderList(getFilteredNotes()); if(activeNoteId) loadNote(activeNoteId); } }
-
+    
     // UI Helpers
     function renderList(data) {
         elNoteList.innerHTML = ''; if (data.length === 0) { elNoteList.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">無筆記</div>'; return; }
@@ -566,7 +566,7 @@
             document.getElementById('tab-webdav').style.borderBottom = 'none';
         }
     }
-
+    
     // ... [Helpers] ...
     function getFilteredNotes() { const kw = elSearchInput.value.trim().toLowerCase(); if (!kw) return notes; const mode = document.querySelector('input[name="searchMode"]:checked').value; const keys = kw.split(/\s+/).filter(k=>k); return notes.filter(n => { const txt = (n.title+n.content).toLowerCase(); return mode === 'AND' ? keys.every(k=>txt.includes(k)) : keys.some(k=>txt.includes(k)); }); }
     function updateHistoryUI(note) { elHistory.innerHTML = '<option value="-1">時光機</option>'; if(!note.history) return; note.history.forEach((h, i) => { const opt = document.createElement('option'); opt.value = i; opt.innerText = `${h.time}`; elHistory.appendChild(opt); }); }
@@ -587,4 +587,34 @@
     window.saveCloudConfig = function() { webdavConfig = { url: elDavUrl.value.trim(), user: elDavUser.value.trim(), pass: elDavPass.value.trim() }; localStorage.setItem('lb_webdav', JSON.stringify(webdavConfig)); googleConfig = { clientId: elGClientId.value.trim(), apiKey: elGApiKey.value.trim() }; localStorage.setItem('lb_gdrive', JSON.stringify(googleConfig)); toggleCloudModal(false); if(webdavConfig.url) syncDown(); if(googleConfig.apiKey) initializeGapiClient(); }
     window.testWebDAV = async function() { elDavTestStatus.innerText = '連線中...'; try { const res = await fetch(elDavUrl.value, { method: 'HEAD', headers: getAuthHeader() }); if (res.ok || res.status===404) { elDavTestStatus.innerText = '成功'; elDavTestStatus.style.color='green'; } else throw new Error(res.status); } catch (e) { elDavTestStatus.innerText = '失敗: ' + e.message; elDavTestStatus.style.color='red'; } }
     function getAuthHeader() { return webdavConfig.user ? { 'Authorization': 'Basic ' + btoa(webdavConfig.user + ':' + webdavConfig.pass) } : {}; }
-    async function sync
+    async function syncDown() { if (!webdavConfig.url || isSyncing) return; updateCloudBtn('loading', '同步...'); isSyncing = true; try { const res = await fetch(webdavConfig.url, { method: 'GET', headers: { ...getAuthHeader(), 'Cache-Control': 'no-cache' } }); if (res.ok) { const cloudNotes = await res.json(); mergeNotes(cloudNotes); updateCloudBtn('synced', '雲端'); } else if (res.status === 404) await syncUp(); } catch (e) { updateCloudBtn('error', '錯誤'); } finally { isSyncing = false; } }
+    async function syncUp() { if (!webdavConfig.url) return; updateCloudBtn('loading', '上傳...'); try { await fetch(webdavConfig.url, { method: 'PUT', headers: { ...getAuthHeader(), 'Content-Type': 'application/json' }, body: JSON.stringify(notes) }); updateCloudBtn('synced', '雲端'); } catch (e) { updateCloudBtn('error', '失敗'); } }
+    window.initLocalFile = async function() { if (!window.showOpenFilePicker) { alert("請使用 Chrome/Edge"); return; } try { const [fileHandle] = await window.showOpenFilePicker({ types: [{ description: 'JSON Files', accept: {'application/json': ['.json']} }], multiple: false }); localFileHandle = fileHandle; const file = await localFileHandle.getFile(); const text = await file.text(); if (text) { try { const diskNotes = JSON.parse(text); mergeNotes(diskNotes); alert(`已連結並合併 ${diskNotes.length} 筆資料`); } catch(err) { if(!confirm("格式錯誤，覆蓋？")) return; } } await saveToDisk(); updateDiskBtn('synced', '已連結'); } catch (e) { if(e.name !== 'AbortError') alert("連結失敗: " + e.message); } }
+    async function saveToDisk() { if (!localFileHandle) return; try { updateDiskBtn('loading', '寫入...'); const writable = await localFileHandle.createWritable(); await writable.write(JSON.stringify(notes, null, 2)); await writable.close(); updateDiskBtn('synced', '硬碟'); } catch (e) { updateDiskBtn('error', '失敗'); } }
+    function updateDiskBtn(state, text) { elDiskBtn.className = ''; elDiskBtn.classList.add(state); elDiskBtn.innerText = (state === 'synced' ? '💾 ' : state === 'loading' ? '⏳ ' : '⚠️ ') + text; }
+    function updateCloudBtn(state, text) { elCloudBtn.className = ''; elCloudBtn.classList.add(state); elCloudBtn.innerText = (state === 'synced' ? '☁️ ' : state === 'loading' ? '🔄 ' : '⚠️ ') + text; }
+    
+    // AI
+    window.toggleAISidebar = function() { elAiSidebar.classList.toggle('open'); }
+    window.summarizeNote = function() { if(!activeNoteId) return; sendToAI(`Summarize this in Traditional Chinese:\n${elEditor.value}`); }
+    window.clearChat = function() { elAiChat.innerHTML = ''; }
+    window.sendToAI = async function(customPrompt) { const prompt = customPrompt || elAiPrompt.value; if(!prompt) return; const host = elAiHost.value.replace(/\/$/, ''); const model = elAiModel.value; localStorage.setItem('lb_host', host); localStorage.setItem('lb_model', model); if(!customPrompt) { appendMsg('user', prompt); elAiPrompt.value = ''; } elSendBtn.disabled = true; const msgDiv = appendMsg('ai', 'Thinking...'); try { const res = await fetch(`${host}/api/generate`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({model, prompt, stream: true}) }); if(!res.ok) throw new Error('Error'); const reader = res.body.getReader(); const decoder = new TextDecoder(); let full = ''; msgDiv.innerText = ''; while(true) { const {done, value} = await reader.read(); if(done) break; const lines = decoder.decode(value, {stream:true}).split('\n'); for(const line of lines) { if(!line.trim()) continue; try { const j = JSON.parse(line); if(j.response) { full += j.response; msgDiv.innerText = full; elAiChat.scrollTop = elAiChat.scrollHeight; } } catch(e){} } } const btn = document.createElement('button'); btn.innerText = '📋 插入'; btn.className = 'toolbar-btn'; btn.style.background='#6c5ce7'; btn.style.color='white'; btn.style.marginTop='5px'; btn.onclick = () => { const start = elEditor.selectionStart; elEditor.value = elEditor.value.slice(0,start) + full + elEditor.value.slice(start); saveCurrentState(); if(window.innerWidth <= 768) toggleAISidebar(); }; msgDiv.appendChild(btn); } catch(e) { msgDiv.innerText = 'Error: ' + e.message; } finally { elSendBtn.disabled = false; } }
+    function appendMsg(role, text) { const d = document.createElement('div'); d.className = `message msg-${role}`; d.innerText = text; elAiChat.appendChild(d); elAiChat.scrollTop = elAiChat.scrollHeight; return d; }
+    // Export Import
+    window.exportData = function() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(notes,null,2)], {type:'application/json'})); a.download = `brain_v20_${new Date().toISOString().split('T')[0]}.json`; a.click(); }
+    window.importDataTrigger = function() { document.getElementById('fileInput').click(); }
+    window.importData = function(inp) { const r = new FileReader(); r.onload = e => { if(confirm('覆蓋資料？')) { notes = JSON.parse(e.target.result); saveToStorage(); init(); syncUp(); if(localFileHandle) saveToDisk(); } }; r.readAsText(inp.files[0]); inp.value = ''; }
+    function escapeHtml(t) { return t ? t.replace(/&/g,"&amp;").replace(/</g,"&lt;") : ''; }
+    function showEmptyState() { elNoteContainer.style.display = 'none'; elEmptyState.style.display = 'flex'; }
+    
+    // Add Button listener
+    document.getElementById('addBtn').addEventListener('click', createNote);
+    elAiPrompt.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendToAI(); } });
+    document.addEventListener('click', e => { if (!e.target.closest('.add-link-wrapper')) elLinkDropdown.style.display = 'none'; });
+    const debounceSave = () => { clearTimeout(saveTimeout); saveTimeout = setTimeout(saveCurrentState, 800); };
+    elTitle.addEventListener('input', debounceSave); elEditor.addEventListener('input', debounceSave);
+
+    init();
+</script>
+</body>
+</html>
