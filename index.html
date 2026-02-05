@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Local Brain v22</title>
+    <title>Local Brain v23</title>
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBzdHlsZT0iYmFja2dyb3VuZDojMmMzZTUwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzM0NDk1ZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iNDAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjQwIiByPSI1IiBmaWxsPSIjMzQ5OGRiIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI3MCIgcj0iNSIgZmlsbD0iIzM0OThkYiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48cGF0aCBkPSJNMzAgNDAgTDUwIDMwIEw3MCA0MCBMNTAgNzAgWiIgc3Ryb2tlPSIjZWNmMGYxIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz48L3N2Zz4=">
     <meta name="theme-color" content="#2c3e50">
     <link rel="manifest" id="my-manifest-placeholder">
@@ -155,6 +155,7 @@
             </div>
         </div>
         <div class="modal-footer">
+            <span id="davTestStatus" style="font-size:0.8rem;margin-right:auto;"></span>
             <button class="toolbar-btn" style="background:#2ecc71;color:white;" onclick="saveCloudConfig()">儲存設定</button>
         </div>
     </div>
@@ -176,7 +177,7 @@
 <div id="sidebar">
     <div class="sidebar-header">
         <div class="header-top">
-            <h2>Local Brain v22</h2>
+            <h2>Local Brain v23</h2>
             <button onclick="toggleSidebar(false)" style="background:none;border:none;color:white;display:none;" id="closeSidebarBtn">✕</button>
             <div id="normalActions" style="display:flex;gap:10px;align-items:center;">
                 <button onclick="toggleBatchMode(true)" style="background:none;border:1px solid #555;color:#ccc;border-radius:4px;padding:2px 8px;font-size:0.8rem;cursor:pointer;" title="整理模式">🗑️ 整理</button>
@@ -258,8 +259,8 @@
     </div>
 
     <div id="emptyState">
-        <p>👋 歡迎使用 Local Brain v22</p>
-        <p style="font-size:0.9rem; color:#888;">G-Drive Repair • PWA • WebDAV</p>
+        <p>👋 歡迎使用 Local Brain v23</p>
+        <p style="font-size:0.9rem; color:#888;">Fixes: Undefined Vars</p>
         <button class="toolbar-btn" style="background:#6c5ce7;color:white;padding:10px 20px;" onclick="createNote()">+ 立即開始</button>
     </div>
 </div>
@@ -298,23 +299,49 @@
     const G_FILE_NAME = 'local_brain_data.json';
 
     // --- App Variables ---
-    const DB_KEY = 'local_brain_db_v22'; // Bump version
+    const DB_KEY = 'local_brain_db_v23'; 
     const MAX_HISTORY = 20; const HISTORY_INTERVAL = 60 * 1000;
     let notes = []; let activeNoteId = null; let saveTimeout; let pendingRestoreIndex = -1;
     let webdavConfig = { url: '', user: '', pass: '' }; let isSyncing = false; let localFileHandle = null;
     let isBatchMode = false; let linkSearchIndex = -1;
 
-    // --- DOM Refs ---
+    // --- DOM Refs (FIXED: Added missing refs) ---
     const el = id => document.getElementById(id);
-    const elGAuthBtn = el('gAuthBtn'), elGSignOutBtn = el('gSignOutBtn'), elGDriveStatus = el('gDriveStatus');
-    const elCloudBtn = el('cloudBtn');
+    const elNoteList = el('noteList'), elNoteContainer = el('noteContainer'), elTitle = el('noteTitle'), elEditor = el('editor'), elEmptyState = el('emptyState'), elStatus = el('status'), elHistory = el('historySelect'), elOutbound = el('outboundLinks'), elInbound = el('inboundLinks'), elSearchInput = el('searchInput'), elCloudBtn = el('cloudBtn'), elDiskBtn = el('diskBtn'), elPinBtn = el('pinBtn'), elGDriveBtn = el('gDriveBtn');
+    const elNormalActions = el('normalActions'), elBatchActions = el('batchActions'), elSidebar = el('sidebar'), elSplitPanel = el('splitPanel'), elSplitTitle = el('splitTitle'), elSplitEditor = el('splitEditor'), elCloudModal = el('cloudModal'), elPreviewModal = el('previewModal'), elPreviewContent = el('previewContent'), elLinkDropdown = el('linkSearchDropdown'), elLinkSearchInput = el('linkSearchInput'), elLinkOptionsList = el('linkOptionsList');
+    const elAiHost = el('aiHost'), elAiModel = el('aiModel'), elAiChat = el('aiChat'), elAiPrompt = el('aiPrompt'), elSendBtn = el('sendBtn'), elAiSidebar = el('aiSidebar'), elOverlay = el('overlayBackdrop');
+    // FIXED: Added missing Dav Refs
+    const elDavUrl = el('davUrl'), elDavUser = el('davUser'), elDavPass = el('davPass'), elDavTestStatus = el('davTestStatus');
+    // FIXED: Added missing GDrive Refs
+    const elGClientId = el('gClientId'), elGApiKey = el('gApiKey'), elGDriveStatus = el('gDriveStatus'), elGAuthBtn = el('gAuthBtn'), elGSignOutBtn = el('gSignOutBtn');
 
-    // --- Google Drive Logic (REVISED) ---
+    function init() {
+        const raw = localStorage.getItem(DB_KEY);
+        if (raw) { try { notes = JSON.parse(raw); } catch(e) { notes = []; } }
+        else { const old = localStorage.getItem('local_brain_db_v22'); if(old) { try{ notes = JSON.parse(old); saveToStorage(); }catch(e){} } }
+        notes.forEach(n => { if (!n.links) n.links = []; }); renderList(notes); if (notes.length > 0) loadNote(notes[0].id); else showEmptyState();
+
+        if(localStorage.getItem('lb_host')) elAiHost.value = localStorage.getItem('lb_host');
+        if(localStorage.getItem('lb_model')) elAiModel.value = localStorage.getItem('lb_model');
+        const davCfg = localStorage.getItem('lb_webdav');
+        if (davCfg) { try { webdavConfig = JSON.parse(davCfg); elDavUrl.value = webdavConfig.url; elDavUser.value = webdavConfig.user; elDavPass.value = webdavConfig.pass; if(webdavConfig.url) syncDown(); } catch(e) {} }
+        
+        const gCfg = localStorage.getItem('lb_gdrive');
+        if (gCfg) { try { googleConfig = JSON.parse(gCfg); elGClientId.value = googleConfig.clientId; elGApiKey.value = googleConfig.apiKey; } catch(e){} }
+        
+        gapi.load('client', initializeGapiClient);
+        window.addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; return ''; });
+        
+        let deferredPrompt; const installBtn = document.getElementById('installAppBtn');
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'block'; });
+        installBtn.addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') installBtn.style.display = 'none'; deferredPrompt = null; });
+    }
+
+    // --- Google Drive Logic ---
     async function initializeGapiClient() {
         if(!googleConfig.apiKey) return;
         try {
             await gapi.client.init({ apiKey: googleConfig.apiKey, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
-            // FIX: Explicitly load drive client to prevent "undefined" error
             await gapi.client.load('drive', 'v3');
             gapiInited = true;
             maybeEnableGButtons();
@@ -335,20 +362,17 @@
 
     window.onload = function() {
         if(window.google) {
-            // Wait for config load
             setTimeout(() => {
                 if(googleConfig.clientId) {
                     try {
                         tokenClient = google.accounts.oauth2.initTokenClient({
                             client_id: googleConfig.clientId,
                             scope: SCOPES,
-                            callback: '', // Defined dynamically
+                            callback: '', 
                         });
                         gisInited = true;
                         maybeEnableGButtons();
-                    } catch(e) {
-                        elGDriveStatus.innerText = 'GIS Init Error: ' + e.message;
-                    }
+                    } catch(e) { elGDriveStatus.innerText = 'GIS Error: ' + e.message; }
                 }
             }, 1000);
         }
@@ -356,37 +380,27 @@
 
     function handleAuthClick() {
         if(!googleConfig.clientId) return alert("Please set Client ID");
-        if(!gapiInited || !gapi.client) return alert("Google API 尚未初始化完成，請檢查 API Key 設定。");
-
+        if(!gapiInited || !gapi.client) return alert("Google API not ready.");
+        
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) { throw (resp); }
             elGDriveStatus.innerText = '已登入';
             await syncGoogleDrive();
         };
-        
-        if (gapi.client.getToken() === null) {
-            tokenClient.requestAccessToken({prompt: 'consent'});
-        } else {
-            tokenClient.requestAccessToken({prompt: ''});
-        }
+        if (gapi.client.getToken() === null) tokenClient.requestAccessToken({prompt: 'consent'});
+        else tokenClient.requestAccessToken({prompt: ''});
     }
 
     function handleSignoutClick() {
         if(gapi.client && gapi.client.getToken() !== null) {
-            const token = gapi.client.getToken();
-            google.accounts.oauth2.revoke(token.access_token);
+            google.accounts.oauth2.revoke(gapi.client.getToken().access_token);
             gapi.client.setToken('');
             elGDriveStatus.innerText = '已登出';
         }
     }
 
     async function syncGoogleDrive() {
-        // Safety Check
-        if (!gapiInited || !gapi.client || !gapi.client.drive) {
-            updateCloudBtn('error', 'API未就緒');
-            return;
-        }
-
+        if (!gapiInited || !gapi.client || !gapi.client.drive) { updateCloudBtn('error', 'API未就緒'); return; }
         updateCloudBtn('loading', 'G同步...');
         try {
             const q = `name = '${G_FILE_NAME}' and trashed = false`;
@@ -398,105 +412,64 @@
                 const fileContent = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
                 const cloudNotes = fileContent.result;
                 if (Array.isArray(cloudNotes)) mergeNotes(cloudNotes);
-
                 const body = JSON.stringify(notes);
-                await gapi.client.request({
-                    path: '/upload/drive/v3/files/' + fileId,
-                    method: 'PATCH',
-                    params: { uploadType: 'media' },
-                    body: body
-                });
+                await gapi.client.request({ path: '/upload/drive/v3/files/' + fileId, method: 'PATCH', params: { uploadType: 'media' }, body: body });
             } else {
-                // Create
                 const boundary = '-------314159265358979323846';
                 const delimiter = "\r\n--" + boundary + "\r\n";
                 const close_delim = "\r\n--" + boundary + "--";
                 const contentType = 'application/json';
                 const metadata = {'name': G_FILE_NAME, 'mimeType': contentType};
                 const multipartRequestBody = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) + delimiter + 'Content-Type: ' + contentType + '\r\n\r\n' + JSON.stringify(notes) + close_delim;
-
-                await gapi.client.request({
-                    'path': '/upload/drive/v3/files',
-                    'method': 'POST',
-                    'params': {'uploadType': 'multipart'},
-                    'headers': {'Content-Type': 'multipart/related; boundary="' + boundary + '"'},
-                    'body': multipartRequestBody
-                });
+                await gapi.client.request({ 'path': '/upload/drive/v3/files', 'method': 'POST', 'params': {'uploadType': 'multipart'}, 'headers': {'Content-Type': 'multipart/related; boundary="' + boundary + '"'}, 'body': multipartRequestBody });
             }
             updateCloudBtn('synced', 'G完成');
-        } catch (err) {
-            console.error(err);
-            updateCloudBtn('error', 'G失敗');
-            elGDriveStatus.innerText = 'Sync Error: ' + (err.result?.error?.message || err.message);
-        }
+        } catch (err) { console.error(err); updateCloudBtn('error', 'G失敗'); elGDriveStatus.innerText = 'Error: ' + (err.result?.error?.message || err.message); }
     }
 
-    // --- Shortcuts (Same as v18) ---
+    // --- Shortcuts ---
     document.addEventListener('keydown', (e) => {
         const cmd = e.ctrlKey || e.metaKey;
-        if (el('linkSearchDropdown').style.display === 'block') {
+        if (elLinkDropdown.style.display === 'block') {
             if (cmd && e.key === 'j') { e.preventDefault(); navigateLinkDropdown(1); return; }
             if (cmd && e.key === 'k') { e.preventDefault(); navigateLinkDropdown(-1); return; }
             if (e.key === 'Enter') {
-                e.preventDefault(); const selected = el('linkOptionsList').children[linkSearchIndex];
-                if (selected) selected.click(); else if(el('linkOptionsList').children.length > 0) el('linkOptionsList').children[0].click(); return;
+                e.preventDefault(); const selected = elLinkOptionsList.children[linkSearchIndex];
+                if (selected) selected.click(); else if(elLinkOptionsList.children.length > 0) elLinkOptionsList.children[0].click(); return;
             }
         }
-        if (cmd && e.key === 'p') { e.preventDefault(); el('searchInput').focus(); return; }
+        if (cmd && e.key === 'p') { e.preventDefault(); elSearchInput.focus(); return; }
         if (cmd && e.key === 'j') { e.preventDefault(); navigateList(1); return; }
         if (cmd && e.key === 'k') { e.preventDefault(); navigateList(-1); return; }
-        if (cmd && e.key === 'o') { e.preventDefault(); el('noteTitle').focus(); el('noteTitle').select(); return; }
-        if (cmd && e.key === 'i') { e.preventDefault(); el('editor').focus(); return; }
+        if (cmd && e.key === 'o') { e.preventDefault(); elTitle.focus(); elTitle.select(); return; }
+        if (cmd && e.key === 'i') { e.preventDefault(); elEditor.focus(); return; }
         if (cmd && e.key === 'l') { e.preventDefault(); toggleLinkSearch(); return; }
     });
-    el('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const f = getFilteredNotes(); if (f.length === 0 && el('searchInput').value.trim()) createNote(); } });
+    elSearchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const f = getFilteredNotes(); if (f.length === 0 && elSearchInput.value.trim()) createNote(); } });
 
-    // --- Standard Logic (Condensed) ---
-    function init() {
-        const raw = localStorage.getItem(DB_KEY);
-        if (raw) { try { notes = JSON.parse(raw); } catch(e) { notes = []; } }
-        else { const old = localStorage.getItem('local_brain_db_v21'); if(old) { try{ notes = JSON.parse(old); saveToStorage(); }catch(e){} } }
-        notes.forEach(n => { if (!n.links) n.links = []; }); renderList(notes); if (notes.length > 0) loadNote(notes[0].id); else showEmptyState();
-        if(localStorage.getItem('lb_host')) el('aiHost').value = localStorage.getItem('lb_host');
-        if(localStorage.getItem('lb_model')) el('aiModel').value = localStorage.getItem('lb_model');
-        const davCfg = localStorage.getItem('lb_webdav');
-        if (davCfg) { try { webdavConfig = JSON.parse(davCfg); el('davUrl').value = webdavConfig.url; el('davUser').value = webdavConfig.user; el('davPass').value = webdavConfig.pass; if(webdavConfig.url) syncDown(); } catch(e) {} }
-        const gCfg = localStorage.getItem('lb_gdrive');
-        if (gCfg) { try { googleConfig = JSON.parse(gCfg); el('gClientId').value = googleConfig.clientId; el('gApiKey').value = googleConfig.apiKey; } catch(e){} }
-        gapi.load('client', initializeGapiClient);
-        window.addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; return ''; });
-        
-        // PWA Install
-        let deferredPrompt; const installBtn = document.getElementById('installAppBtn');
-        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'block'; });
-        installBtn.addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') installBtn.style.display = 'none'; deferredPrompt = null; });
-    }
-
+    // --- Helper Functions ---
     function navigateList(dir) { const visibleNotes = getFilteredNotes(); if (visibleNotes.length===0) return; const currentIndex = visibleNotes.findIndex(n => n.id === activeNoteId); let nextIndex = currentIndex + dir; if (nextIndex < 0) nextIndex = 0; if (nextIndex >= visibleNotes.length) nextIndex = visibleNotes.length - 1; if (nextIndex !== currentIndex || activeNoteId === null) { loadNote(visibleNotes[nextIndex].id); const listItem = document.getElementById(`note-item-${visibleNotes[nextIndex].id}`); if(listItem) listItem.scrollIntoView({block: 'nearest'}); } }
-    function navigateLinkDropdown(dir) { const options = el('linkOptionsList').children; if (options.length === 0) return; if (linkSearchIndex >= 0 && linkSearchIndex < options.length) options[linkSearchIndex].classList.remove('selected'); linkSearchIndex += dir; if (linkSearchIndex < 0) linkSearchIndex = 0; if (linkSearchIndex >= options.length) linkSearchIndex = options.length - 1; options[linkSearchIndex].classList.add('selected'); options[linkSearchIndex].scrollIntoView({block: 'nearest'}); }
-    
-    function createNote() { const now = new Date(); const searchTerm = el('searchInput').value.trim(); const title = searchTerm ? searchTerm : `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; const newNote = { id: Date.now(), title: title, content: "", updatedAt: now.toLocaleString(), history: [], links: [], pinned: false }; notes.unshift(newNote); sortNotes(); saveToStorage(); el('searchInput').value = ''; renderList(notes); loadNote(newNote.id); if(window.innerWidth <= 768) toggleSidebar(false); }
-    function loadNote(id) { activeNoteId = id; const note = notes.find(n => n.id === id); if (!note) return; el('noteTitle').value = note.title; el('editor').value = note.content; updatePinUI(note); el('noteContainer').style.display = 'flex'; el('emptyState').style.display = 'none'; updateHistoryUI(note); renderLinksSection(note); renderList(el('searchInput').value ? getFilteredNotes() : notes); el('linkSearchDropdown').style.display = 'none'; if(window.innerWidth <= 768) toggleSidebar(false); }
-    function saveCurrentState(force = false) { if (!activeNoteId) return; const note = notes.find(n => n.id === activeNoteId); const newTitle = el('noteTitle').value; const newContent = el('editor').value; if (!force && note.title === newTitle && note.content === newContent) return; const now = Date.now(); const lastHist = note.history[0]; if (newContent !== note.content) { if (((now - (lastHist?.timestamp||0)) >= HISTORY_INTERVAL) || !lastHist) { note.history.unshift({ time: new Date().toLocaleString(), timestamp: now, content: note.content }); if (note.history.length > MAX_HISTORY) note.history = note.history.slice(0, MAX_HISTORY); } } note.title = newTitle; note.content = newContent; note.updatedAt = new Date().toLocaleString(); sortNotes(); saveToStorage(); if(el('searchInput').value) renderList(getFilteredNotes()); else renderList(notes); updateHistoryUI(note); el('status').innerText = '已儲存'; setTimeout(() => el('status').innerText = '', 1500); if(webdavConfig.url) { clearTimeout(saveTimeout); saveTimeout = setTimeout(syncUp, 2000); } if(googleConfig.apiKey) { clearTimeout(saveTimeout); saveTimeout = setTimeout(syncGoogleDrive, 3000); } if(localFileHandle) saveToDisk(); }
+    function navigateLinkDropdown(dir) { const options = elLinkOptionsList.children; if (options.length === 0) return; if (linkSearchIndex >= 0 && linkSearchIndex < options.length) options[linkSearchIndex].classList.remove('selected'); linkSearchIndex += dir; if (linkSearchIndex < 0) linkSearchIndex = 0; if (linkSearchIndex >= options.length) linkSearchIndex = options.length - 1; options[linkSearchIndex].classList.add('selected'); options[linkSearchIndex].scrollIntoView({block: 'nearest'}); }
+    function createNote() { const now = new Date(); const searchTerm = elSearchInput.value.trim(); const title = searchTerm ? searchTerm : `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; const newNote = { id: Date.now(), title: title, content: "", updatedAt: now.toLocaleString(), history: [], links: [], pinned: false }; notes.unshift(newNote); sortNotes(); saveToStorage(); elSearchInput.value = ''; renderList(notes); loadNote(newNote.id); if(window.innerWidth <= 768) toggleSidebar(false); }
+    function loadNote(id) { activeNoteId = id; const note = notes.find(n => n.id === id); if (!note) return; elTitle.value = note.title; elEditor.value = note.content; updatePinUI(note); elNoteContainer.style.display = 'flex'; elEmptyState.style.display = 'none'; updateHistoryUI(note); renderLinksSection(note); renderList(elSearchInput.value ? getFilteredNotes() : notes); elLinkDropdown.style.display = 'none'; if(window.innerWidth <= 768) toggleSidebar(false); }
+    function saveCurrentState(force = false) { if (!activeNoteId) return; const note = notes.find(n => n.id === activeNoteId); const newTitle = elTitle.value; const newContent = elEditor.value; if (!force && note.title === newTitle && note.content === newContent) return; const now = Date.now(); const lastHist = note.history[0]; if (newContent !== note.content) { if (((now - (lastHist?.timestamp||0)) >= HISTORY_INTERVAL) || !lastHist) { note.history.unshift({ time: new Date().toLocaleString(), timestamp: now, content: note.content }); if (note.history.length > MAX_HISTORY) note.history = note.history.slice(0, MAX_HISTORY); } } note.title = newTitle; note.content = newContent; note.updatedAt = new Date().toLocaleString(); sortNotes(); saveToStorage(); if(elSearchInput.value) renderList(getFilteredNotes()); else renderList(notes); updateHistoryUI(note); elStatus.innerText = '已儲存'; setTimeout(() => elStatus.innerText = '', 1500); if(webdavConfig.url) { clearTimeout(saveTimeout); saveTimeout = setTimeout(syncUp, 2000); } if(googleConfig.apiKey) { clearTimeout(saveTimeout); saveTimeout = setTimeout(syncGoogleDrive, 3000); } if(localFileHandle) saveToDisk(); }
     function saveToStorage() { localStorage.setItem(DB_KEY, JSON.stringify(notes)); }
-    function toggleSidebar(show) { if (show) { el('sidebar').classList.add('mobile-open'); el('overlayBackdrop').style.display = 'block'; } else { el('sidebar').classList.remove('mobile-open'); el('overlayBackdrop').style.display = 'none'; } }
+    function toggleSidebar(show) { if (show) { elSidebar.classList.add('mobile-open'); elOverlay.style.display = 'block'; } else { elSidebar.classList.remove('mobile-open'); elOverlay.style.display = 'none'; } }
     function togglePin() { if (!activeNoteId) return; const note = notes.find(n => n.id === activeNoteId); if (note) { note.pinned = !note.pinned; updatePinUI(note); saveCurrentState(true); } }
-    function updatePinUI(note) { if (note.pinned) { el('pinBtn').classList.add('pinned'); el('pinBtn').innerText = "📌 已置頂"; } else { el('pinBtn').classList.remove('pinned'); el('pinBtn').innerText = "📌 置頂"; } }
+    function updatePinUI(note) { if (note.pinned) { elPinBtn.classList.add('pinned'); elPinBtn.innerText = "📌 已置頂"; } else { elPinBtn.classList.remove('pinned'); elPinBtn.innerText = "📌 置頂"; } }
     function sortNotes() { notes.sort((a, b) => { if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1; return new Date(b.updatedAt) - new Date(a.updatedAt); }); }
     function mergeNotes(remoteNotes) { let changes = 0; remoteNotes.forEach(rNote => { const localIdx = notes.findIndex(n => n.id === rNote.id); if (localIdx === -1) { notes.push(rNote); changes++; } else { const lDate = new Date(notes[localIdx].updatedAt).getTime(); const rDate = new Date(rNote.updatedAt).getTime(); if (rDate > lDate) { notes[localIdx] = rNote; changes++; } } }); sortNotes(); if(changes > 0) { saveToStorage(); renderList(getFilteredNotes()); if(activeNoteId) loadNote(activeNoteId); } }
-    
-    function renderList(data) { const list = el('noteList'); list.innerHTML = ''; if (data.length === 0) { list.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">無筆記</div>'; return; } data.forEach(n => { const li = document.createElement('li'); li.className = 'note-item' + (n.id === activeNoteId ? ' active' : ''); li.id = `note-item-${n.id}`; li.onclick = (e) => { if (e.target.tagName === 'BUTTON' || e.target.classList.contains('split-btn')) return; if (isBatchMode) { if (e.target.tagName === 'INPUT') return; const cb = li.querySelector('.batch-checkbox'); if(cb) cb.checked = !cb.checked; } else { loadNote(n.id); } }; let html = ''; if (isBatchMode) html += `<input type="checkbox" class="batch-checkbox" value="${n.id}">`; let pinIcon = n.pinned ? '<span style="color:#f1c40f;margin-right:5px;">📌</span>' : ''; html += `<div class="note-info"><span class="title">${pinIcon}${escapeHtml(n.title)}</span><span class="preview">${escapeHtml(n.content.slice(0,40).replace(/\n/g,' '))}</span></div>`; if (!isBatchMode) html += `<button class="split-btn" onclick="toggleSplitView(${n.id});" title="對照">👀</button>`; li.innerHTML = html; list.appendChild(li); }); }
-    function getFilteredNotes() { const kw = el('searchInput').value.trim().toLowerCase(); if (!kw) return notes; const mode = document.querySelector('input[name="searchMode"]:checked').value; const keys = kw.split(/\s+/).filter(k=>k); return notes.filter(n => { const txt = (n.title+n.content).toLowerCase(); return mode === 'AND' ? keys.every(k=>txt.includes(k)) : keys.some(k=>txt.includes(k)); }); }
-    
-    function toggleBatchMode(active) { isBatchMode = active; if (active) { el('sidebar').classList.add('batch-mode'); el('normalActions').style.display = 'none'; el('batchActions').style.display = 'flex'; } else { el('sidebar').classList.remove('batch-mode'); el('normalActions').style.display = 'flex'; el('batchActions').style.display = 'none'; } renderList(getFilteredNotes()); }
-    function deleteSelectedNotes() { const checkboxes = document.querySelectorAll('.batch-checkbox:checked'); if (checkboxes.length === 0) return alert("未選取"); if (confirm(`刪除 ${checkboxes.length} 筆？`)) { const idsToDelete = Array.from(checkboxes).map(cb => parseInt(cb.value)); notes = notes.filter(n => !idsToDelete.includes(n.id)); if (idsToDelete.includes(activeNoteId)) { activeNoteId = null; el('noteContainer').style.display = 'none'; el('emptyState').style.display = 'flex'; } saveToStorage(); toggleBatchMode(false); if (notes.length > 0 && !activeNoteId) loadNote(notes[0].id); syncUp(); if(localFileHandle) saveToDisk(); } }
+    function renderList(data) { elNoteList.innerHTML = ''; if (data.length === 0) { elNoteList.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">無筆記</div>'; return; } data.forEach(n => { const li = document.createElement('li'); li.className = 'note-item' + (n.id === activeNoteId ? ' active' : ''); li.id = `note-item-${n.id}`; li.onclick = (e) => { if (e.target.tagName === 'BUTTON' || e.target.classList.contains('split-btn')) return; if (isBatchMode) { if (e.target.tagName === 'INPUT') return; const cb = li.querySelector('.batch-checkbox'); if(cb) cb.checked = !cb.checked; } else { loadNote(n.id); } }; let html = ''; if (isBatchMode) html += `<input type="checkbox" class="batch-checkbox" value="${n.id}">`; let pinIcon = n.pinned ? '<span style="color:#f1c40f;margin-right:5px;">📌</span>' : ''; html += `<div class="note-info"><span class="title">${pinIcon}${escapeHtml(n.title)}</span><span class="preview">${escapeHtml(n.content.slice(0,40).replace(/\n/g,' '))}</span></div>`; if (!isBatchMode) html += `<button class="split-btn" onclick="toggleSplitView(${n.id});" title="對照">👀</button>`; li.innerHTML = html; elNoteList.appendChild(li); }); }
+    function getFilteredNotes() { const kw = elSearchInput.value.trim().toLowerCase(); if (!kw) return notes; const mode = document.querySelector('input[name="searchMode"]:checked').value; const keys = kw.split(/\s+/).filter(k=>k); return notes.filter(n => { const txt = (n.title+n.content).toLowerCase(); return mode === 'AND' ? keys.every(k=>txt.includes(k)) : keys.some(k=>txt.includes(k)); }); }
+    function toggleBatchMode(active) { isBatchMode = active; if (active) { elSidebar.classList.add('batch-mode'); elNormalActions.style.display = 'none'; elBatchActions.style.display = 'flex'; } else { elSidebar.classList.remove('batch-mode'); elNormalActions.style.display = 'flex'; elBatchActions.style.display = 'none'; } renderList(getFilteredNotes()); }
+    function deleteSelectedNotes() { const checkboxes = document.querySelectorAll('.batch-checkbox:checked'); if (checkboxes.length === 0) return alert("未選取"); if (confirm(`刪除 ${checkboxes.length} 筆？`)) { const idsToDelete = Array.from(checkboxes).map(cb => parseInt(cb.value)); notes = notes.filter(n => !idsToDelete.includes(n.id)); if (idsToDelete.includes(activeNoteId)) { activeNoteId = null; elNoteContainer.style.display = 'none'; elEmptyState.style.display = 'flex'; } saveToStorage(); toggleBatchMode(false); if (notes.length > 0 && !activeNoteId) loadNote(notes[0].id); syncUp(); if(localFileHandle) saveToDisk(); } }
     
     // UI Helpers
     window.switchTab = function(tab) { if(tab === 'webdav') { document.getElementById('webdav-section').style.display = 'block'; document.getElementById('gdrive-section').style.display = 'none'; document.getElementById('tab-webdav').style.borderBottom = '2px solid #3498db'; document.getElementById('tab-gdrive').style.borderBottom = 'none'; } else { document.getElementById('webdav-section').style.display = 'none'; document.getElementById('gdrive-section').style.display = 'block'; document.getElementById('tab-gdrive').style.borderBottom = '2px solid #3498db'; document.getElementById('tab-webdav').style.borderBottom = 'none'; } }
-    window.toggleCloudModal = function(show) { el('cloudModal').style.display = show ? 'flex' : 'none'; elDavTestStatus.innerText = ''; }
-    window.saveCloudConfig = function() { webdavConfig = { url: el('davUrl').value.trim(), user: el('davUser').value.trim(), pass: el('davPass').value.trim() }; localStorage.setItem('lb_webdav', JSON.stringify(webdavConfig)); googleConfig = { clientId: el('gClientId').value.trim(), apiKey: el('gApiKey').value.trim() }; localStorage.setItem('lb_gdrive', JSON.stringify(googleConfig)); toggleCloudModal(false); if(webdavConfig.url) syncDown(); if(googleConfig.apiKey) initializeGapiClient(); }
+    window.toggleCloudModal = function(show) { elCloudModal.style.display = show ? 'flex' : 'none'; elDavTestStatus.innerText = ''; }
+    window.saveCloudConfig = function() { webdavConfig = { url: elDavUrl.value.trim(), user: elDavUser.value.trim(), pass: elDavPass.value.trim() }; localStorage.setItem('lb_webdav', JSON.stringify(webdavConfig)); googleConfig = { clientId: elGClientId.value.trim(), apiKey: elGApiKey.value.trim() }; localStorage.setItem('lb_gdrive', JSON.stringify(googleConfig)); toggleCloudModal(false); if(webdavConfig.url) syncDown(); if(googleConfig.apiKey) initializeGapiClient(); }
     function escapeHtml(t) { return t ? t.replace(/&/g,"&amp;").replace(/</g,"&lt;") : ''; }
-    function showEmptyState() { el('noteContainer').style.display = 'none'; el('emptyState').style.display = 'flex'; }
+    function showEmptyState() { elNoteContainer.style.display = 'none'; elEmptyState.style.display = 'flex'; }
     function updateCloudBtn(state, text) { elCloudBtn.className = ''; elCloudBtn.classList.add(state); elCloudBtn.innerText = (state === 'synced' ? '☁️ ' : state === 'loading' ? '🔄 ' : '⚠️ ') + text; }
     
     // WebDAV
@@ -505,19 +478,18 @@
     async function syncDown() { if (!webdavConfig.url || isSyncing) return; updateCloudBtn('loading', '同步...'); isSyncing = true; try { const res = await fetch(webdavConfig.url, { method: 'GET', headers: { ...getAuthHeader(), 'Cache-Control': 'no-cache' } }); if (res.ok) { const cloudNotes = await res.json(); mergeNotes(cloudNotes); updateCloudBtn('synced', '雲端'); } else if (res.status === 404) await syncUp(); } catch (e) { updateCloudBtn('error', '錯誤'); } finally { isSyncing = false; } }
     async function syncUp() { if (!webdavConfig.url) return; updateCloudBtn('loading', '上傳...'); try { await fetch(webdavConfig.url, { method: 'PUT', headers: { ...getAuthHeader(), 'Content-Type': 'application/json' }, body: JSON.stringify(notes) }); updateCloudBtn('synced', '雲端'); } catch (e) { updateCloudBtn('error', '失敗'); } }
 
-    // Helpers
     function updateHistoryUI(note) { elHistory.innerHTML = '<option value="-1">時光機</option>'; if(!note.history) return; note.history.forEach((h, i) => { const opt = document.createElement('option'); opt.value = i; opt.innerText = `${h.time}`; elHistory.appendChild(opt); }); }
     elHistory.addEventListener('change', (e) => { const idx = e.target.value; if (idx != -1) openPreview(idx); e.target.value = -1; });
     function openPreview(idx) { const note = notes.find(n => n.id === activeNoteId); pendingRestoreIndex = idx; elPreviewContent.innerText = note.history[idx].content; elPreviewModal.style.display = 'flex'; }
     window.closePreview = function() { elPreviewModal.style.display = 'none'; pendingRestoreIndex = -1; }
     window.confirmRestore = function() { if (pendingRestoreIndex === -1) return; const note = notes.find(n => n.id === activeNoteId); note.history.unshift({ time: new Date().toLocaleString(), timestamp: Date.now(), content: note.content }); elEditor.value = note.history[pendingRestoreIndex].content; saveCurrentState(true); closePreview(); }
-    window.toggleLinkSearch = function() { const v = el('linkSearchDropdown').style.display==='block'; el('linkSearchDropdown').style.display=v?'none':'block'; if(!v){el('linkSearchInput').value='';el('linkSearchInput').focus();filterLinkOptions();linkSearchIndex=-1;} }
-    window.filterLinkOptions = function() { const kw = el('linkSearchInput').value.toLowerCase(); const curr = notes.find(n => n.id === activeNoteId); el('linkOptionsList').innerHTML = ''; const cands = notes.filter(n => n.id !== activeNoteId && (!curr.links || !curr.links.includes(n.id)) && (n.title.toLowerCase().includes(kw) || n.content.toLowerCase().includes(kw))); linkSearchIndex=-1; if(cands.length===0) { el('linkOptionsList').innerHTML = '<div style="padding:10px; color:#999;">無</div>'; return; } cands.slice(0,10).forEach(n => { const d = document.createElement('div'); d.className = 'link-option'; d.innerText = n.title; d.onclick = () => addLink(n.id); el('linkOptionsList').appendChild(d); }); }
+    window.toggleLinkSearch = function() { const v = elLinkDropdown.style.display==='block'; elLinkDropdown.style.display=v?'none':'block'; if(!v){elLinkSearchInput.value='';elLinkSearchInput.focus();filterLinkOptions();linkSearchIndex=-1;} }
+    window.filterLinkOptions = function() { const kw = elLinkSearchInput.value.toLowerCase(); const curr = notes.find(n => n.id === activeNoteId); elLinkOptionsList.innerHTML = ''; const cands = notes.filter(n => n.id !== activeNoteId && (!curr.links || !curr.links.includes(n.id)) && (n.title.toLowerCase().includes(kw) || n.content.toLowerCase().includes(kw))); linkSearchIndex=-1; if(cands.length===0) { elLinkOptionsList.innerHTML = '<div style="padding:10px; color:#999;">無</div>'; return; } cands.slice(0,10).forEach(n => { const d = document.createElement('div'); d.className = 'link-option'; d.innerText = n.title; d.onclick = () => addLink(n.id); elLinkOptionsList.appendChild(d); }); }
     window.addLink = function(tid) { const n = notes.find(n => n.id === activeNoteId); if (!n.links) n.links = []; n.links.push(tid); saveCurrentState(true); loadNote(activeNoteId); }
     window.removeLink = function(tid) { const n = notes.find(n => n.id === activeNoteId); n.links = n.links.filter(id => id !== tid); saveCurrentState(true); loadNote(activeNoteId); }
     function renderLinksSection(note) { elOutbound.innerHTML = ''; elInbound.innerHTML = ''; if (note.links && note.links.length > 0) note.links.forEach(lid => { const t = notes.find(n => n.id === lid); if (t) { const tag = document.createElement('span'); tag.className = 'link-tag'; tag.innerHTML = `<span onclick="loadNote(${lid})">${escapeHtml(t.title)}</span><span class="remove-link" onclick="removeLink(${lid})">&times;</span>`; elOutbound.appendChild(tag); } }); else elOutbound.innerHTML = '<span style="color:#ccc; font-size:0.8rem;">無</span>'; const bl = notes.filter(n => n.links && n.links.includes(note.id)); if (bl.length > 0) bl.forEach(bn => { const tag = document.createElement('span'); tag.className = 'backlink-tag'; tag.innerText = "← " + bn.title; tag.onclick = () => loadNote(bn.id); elInbound.appendChild(tag); }); else elInbound.innerHTML = '<span style="color:#ccc; font-size:0.8rem;">無</span>'; }
     window.deleteCurrentNote = function() { if(confirm('刪除？')) { notes = notes.filter(n => n.id !== activeNoteId); saveToStorage(); activeNoteId = null; renderList(getFilteredNotes()); if(notes.length > 0) loadNote(notes[0].id); else showEmptyState(); syncUp(); if(localFileHandle) saveToDisk(); } }
-    window.toggleSplitView = function(noteId) { if (noteId === null) { el('splitPanel').classList.remove('open'); return; } const note = notes.find(n => n.id === noteId); if (note) { el('splitTitle').innerText = note.title; el('splitEditor').value = note.content; el('splitPanel').classList.add('open'); if(window.innerWidth <= 768) toggleSidebar(false); } }
+    window.toggleSplitView = function(noteId) { if (noteId === null) { elSplitPanel.classList.remove('open'); return; } const note = notes.find(n => n.id === noteId); if (note) { elSplitTitle.innerText = note.title; elSplitEditor.value = note.content; elSplitPanel.classList.add('open'); if(window.innerWidth <= 768) toggleSidebar(false); } }
     window.initLocalFile = async function() { if (!window.showOpenFilePicker) { alert("請使用 Chrome/Edge"); return; } try { const [fileHandle] = await window.showOpenFilePicker({ types: [{ description: 'JSON Files', accept: {'application/json': ['.json']} }], multiple: false }); localFileHandle = fileHandle; const file = await localFileHandle.getFile(); const text = await file.text(); if (text) { try { const diskNotes = JSON.parse(text); mergeNotes(diskNotes); alert(`已連結並合併 ${diskNotes.length} 筆資料`); } catch(err) { if(!confirm("格式錯誤，覆蓋？")) return; } } await saveToDisk(); updateDiskBtn('synced', '已連結'); } catch (e) { if(e.name !== 'AbortError') alert("連結失敗: " + e.message); } }
     async function saveToDisk() { if (!localFileHandle) return; try { updateDiskBtn('loading', '寫入...'); const writable = await localFileHandle.createWritable(); await writable.write(JSON.stringify(notes, null, 2)); await writable.close(); updateDiskBtn('synced', '硬碟'); } catch (e) { updateDiskBtn('error', '失敗'); } }
     function updateDiskBtn(state, text) { elDiskBtn.className = ''; elDiskBtn.classList.add(state); elDiskBtn.innerText = (state === 'synced' ? '💾 ' : state === 'loading' ? '⏳ ' : '⚠️ ') + text; }
@@ -528,11 +500,11 @@
     window.clearChat = function() { elAiChat.innerHTML = ''; }
     window.sendToAI = async function(customPrompt) { const prompt = customPrompt || elAiPrompt.value; if(!prompt) return; const host = elAiHost.value.replace(/\/$/, ''); const model = elAiModel.value; localStorage.setItem('lb_host', host); localStorage.setItem('lb_model', model); if(!customPrompt) { appendMsg('user', prompt); elAiPrompt.value = ''; } elSendBtn.disabled = true; const msgDiv = appendMsg('ai', 'Thinking...'); try { const res = await fetch(`${host}/api/generate`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({model, prompt, stream: true}) }); if(!res.ok) throw new Error('Error'); const reader = res.body.getReader(); const decoder = new TextDecoder(); let full = ''; msgDiv.innerText = ''; while(true) { const {done, value} = await reader.read(); if(done) break; const lines = decoder.decode(value, {stream:true}).split('\n'); for(const line of lines) { if(!line.trim()) continue; try { const j = JSON.parse(line); if(j.response) { full += j.response; msgDiv.innerText = full; elAiChat.scrollTop = elAiChat.scrollHeight; } } catch(e){} } } const btn = document.createElement('button'); btn.innerText = '📋 插入'; btn.className = 'toolbar-btn'; btn.style.background='#6c5ce7'; btn.style.color='white'; btn.style.marginTop='5px'; btn.onclick = () => { const start = elEditor.selectionStart; elEditor.value = elEditor.value.slice(0,start) + full + elEditor.value.slice(start); saveCurrentState(); if(window.innerWidth <= 768) toggleAISidebar(); }; msgDiv.appendChild(btn); } catch(e) { msgDiv.innerText = 'Error: ' + e.message; } finally { elSendBtn.disabled = false; } }
     function appendMsg(role, text) { const d = document.createElement('div'); d.className = `message msg-${role}`; d.innerText = text; elAiChat.appendChild(d); elAiChat.scrollTop = elAiChat.scrollHeight; return d; }
-    window.exportData = function() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(notes,null,2)], {type:'application/json'})); a.download = `brain_v22_${new Date().toISOString().split('T')[0]}.json`; a.click(); }
+    window.exportData = function() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(notes,null,2)], {type:'application/json'})); a.download = `brain_v23_${new Date().toISOString().split('T')[0]}.json`; a.click(); }
     window.importDataTrigger = function() { document.getElementById('fileInput').click(); }
     window.importData = function(inp) { const r = new FileReader(); r.onload = e => { if(confirm('覆蓋資料？')) { notes = JSON.parse(e.target.result); saveToStorage(); init(); syncUp(); if(localFileHandle) saveToDisk(); } }; r.readAsText(inp.files[0]); inp.value = ''; }
 
-    // Add Button listener
+    // Init
     document.getElementById('addBtn').addEventListener('click', createNote);
     elAiPrompt.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendToAI(); } });
     document.addEventListener('click', e => { if (!e.target.closest('.add-link-wrapper')) elLinkDropdown.style.display = 'none'; });
