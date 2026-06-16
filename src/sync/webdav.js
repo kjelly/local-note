@@ -1,11 +1,10 @@
 // sync/webdav.js — WebDAV GET/PUT 與測試
-// Phase 1：仍以 localStorage 存 webdav 設定；Phase 5 改用 IndexedDB meta
+// Phase 3：設定改存 IndexedDB meta
 
-const LS_WEBDAV = 'lb_webdav';
+import { getConfig } from '../core/config.js';
 
-function getConfig() {
-  try { return JSON.parse(localStorage.getItem(LS_WEBDAV) || '{}'); }
-  catch { return {}; }
+async function getCfg() {
+  return (await getConfig('webdav')) || {};
 }
 
 function authHeader(cfg) {
@@ -26,7 +25,7 @@ export async function testWebDAV(url, user, pass) {
 }
 
 export async function webdavGet() {
-  const cfg = getConfig();
+  const cfg = await getCfg();
   if (!cfg.url) return null;
   const res = await fetch(cfg.url, {
     method: 'GET',
@@ -37,7 +36,7 @@ export async function webdavGet() {
 }
 
 export async function webdavPut(payload) {
-  const cfg = getConfig();
+  const cfg = await getCfg();
   if (!cfg.url) return { ok: false, error: 'no url' };
   try {
     const res = await fetch(cfg.url, {

@@ -1,11 +1,10 @@
 // sync/gdrive.js — Google Drive
-// Phase 1 僅佔位（建立 gapi 載入 + 登入流程），實際同步在 Phase 5 接入
+// Phase 3：設定改存 IndexedDB meta
 
-const LS_GDRIVE = 'lb_gdrive';
+import { getConfig } from '../core/config.js';
 
-function getConfig() {
-  try { return JSON.parse(localStorage.getItem(LS_GDRIVE) || '{}'); }
-  catch { return {}; }
+async function getCfg() {
+  return (await getConfig('gdrive')) || {};
 }
 
 export function ensureGapiLoaded() {
@@ -19,7 +18,7 @@ export function ensureGapiLoaded() {
 }
 
 export async function initGapi() {
-  const cfg = getConfig();
+  const cfg = await getCfg();
   if (!cfg.apiKey) return;
   await new Promise((res) => gapi.load('client', res));
   try {

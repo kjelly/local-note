@@ -1,14 +1,16 @@
 // ai-panel.js — Ollama 聊天（串流）
+// Phase 3：設定改存 IndexedDB meta
 
 import { h, clear } from '../util/dom.js';
 import { activeNoteId } from './editor.js';
+import { getConfig, setConfig } from '../core/config.js';
 
-export function bindAIPanel() {
+export async function bindAIPanel() {
   const ai = document.getElementById('aiSidebar');
   const aiPrompt = document.getElementById('aiPrompt');
-  // 還原 host / model
-  if (localStorage.getItem('lb_host')) document.getElementById('aiHost').value = localStorage.getItem('lb_host');
-  if (localStorage.getItem('lb_model')) document.getElementById('aiModel').value = localStorage.getItem('lb_model');
+  const cfg = await getConfig('ai');
+  document.getElementById('aiHost').value = cfg.host;
+  document.getElementById('aiModel').value = cfg.model;
 
   aiPrompt.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendToAI(); }
@@ -33,8 +35,7 @@ window.sendToAI = async function (customPrompt) {
   if (!prompt) return;
   const host = (document.getElementById('aiHost').value || '').replace(/\/$/, '');
   const model = document.getElementById('aiModel').value;
-  localStorage.setItem('lb_host', host);
-  localStorage.setItem('lb_model', model);
+  await setConfig('ai', { host, model });
   if (!customPrompt) {
     appendMsg('user', prompt);
     document.getElementById('aiPrompt').value = '';

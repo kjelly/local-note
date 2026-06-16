@@ -1,6 +1,7 @@
 // editor.js — 編輯器、標題、置頂、刪除、對照
 // Phase 2：note 改為 LWW 結構；store 內部存放完整 LWW 物件，
 // UI 層透過 noteView() 取得扁平 view
+// Phase 3：搜尋改用反向索引（src/core/search-index.js）
 
 import { signal } from '../core/store.js';
 import {
@@ -14,6 +15,7 @@ import {
   getAllNotes, putNote, deleteNote as dbDeleteNote,
 } from '../core/idb.js';
 import { normalizeNote } from '../model/note.js';
+import { buildIndex, indexUpdate, searchIndex, fuzzyFallback } from '../core/search-index.js';
 
 const HISTORY_INTERVAL = 60 * 1000;
 const MAX_HISTORY = 20;
@@ -23,12 +25,14 @@ export const notesStore = signal([]); // 完整 LWW 物件
 export const searchKeyword = signal('');
 export const searchMode = signal('AND');
 export const statusMessage = signal('');
+let searchIdx = new Map();
 
 export async function loadAllNotes() {
   const all = await getAllNotes();
   const migrated = all.map(normalizeNote);
   sortNotesInPlace(migrated);
   notesStore.set(migrated);
+  searchIdx = buildIndex(migrated);
 }
 
 // 用 noteView 給 UI 用：title/content 攤平；同時支援排序用 updatedAt
@@ -54,15 +58,20 @@ function latestTs(note) {
 }
 
 export function getFilteredNotes() {
-  const kw = searchKeyword.get().trim().toLowerCase();
+  const kw = searchKeyword.get().trim();
   const all = notesStore.get();
   if (!kw) return all;
   const mode = searchMode.get();
-  const keys = kw.split(/\s+/).filter(Boolean);
-  return all.filter((n) => {
-    const txt = ((n.title?.value || '') + (n.content?.value || '')).toLowerCase();
-    return mode === 'AND' ? keys.every((k) => txt.includes(k)) : keys.some((k) => txt.includes(k));
-  });
+  // 先用反向索引
+  const ids = searchIndex(searchIdx, kw, mode);
+  if (ids != null) {
+    const idSet = new Set(ids);
+    const hits = all.filter((n) => idSet.has(n.id));
+    // 沒命中時 fallback 到 O(n) 模糊搜尋（中日韓可能 tokenize 漏）
+    if (hits.length === 0) return fuzzyFallback(all, kw, mode);
+    return hits;
+  }
+  return fuzzyFallback(all, kw, mode);
 }
 
 export async function createNote(presetTitle = '') {
@@ -72,6 +81,7 @@ export async function createNote(presetTitle = '') {
   const note = makeNote({ title });
   const all = notesStore.get();
   notesStore.set([note, ...all]);
+  indexUpdate(searchIdx, null, note);
   await persist(note);
   activeNoteId.set(note.id);
   return note;
@@ -131,6 +141,7 @@ export async function saveCurrentState(force = false) {
   all[idx] = next;
   sortNotesInPlace(all);
   notesStore.set([...all]);
+  indexUpdate(searchIdx, id, next);
   await persist(next);
   statusMessage.set('已儲存');
   setTimeout(() => statusMessage.set(''), 1500);
@@ -165,6 +176,7 @@ export async function deleteCurrentNote() {
   await dbDeleteNote(id);
   const all = notesStore.get().filter((n) => n.id !== id);
   notesStore.set(all);
+  indexUpdate(searchIdx, id, null);
   activeNoteId.set(null);
   document.getElementById('noteContainer').style.display = 'none';
   document.getElementById('emptyState').style.display = all.length > 0 ? 'none' : 'flex';
@@ -191,7 +203,10 @@ export function togglePin() {
 export async function deleteSelectedNotes(ids) {
   if (!ids || ids.length === 0) return;
   if (!confirm(`刪除 ${ids.length} 筆？`)) return;
-  for (const id of ids) await dbDeleteNote(id);
+  for (const id of ids) {
+    await dbDeleteNote(id);
+    indexUpdate(searchIdx, id, null);
+  }
   const all = notesStore.get().filter((n) => !ids.includes(n.id));
   notesStore.set(all);
   if (ids.includes(activeNoteId.get())) {
