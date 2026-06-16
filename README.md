@@ -37,6 +37,6 @@ test/                     # Vitest 單元測試
 - [x] **P2** 欄位級 LWW + 全新資料模型（title/content/links/pinned 各自 LWW）
 - [x] **P3** 搜尋反向索引（Map<token, Set<id>>）+ 設定改存 IndexedDB meta
 - [x] **P4** 虛擬捲動（固定列高 + overscan）+ render patch
-- [ ] P5 同步強化（3-way merge / ETag / bg sync）
+- [x] **P5** 同步強化：3-way merge + ETag/If-Match + 背景同步佇列（指數退避）
 - [ ] P6 附件（IndexedDB blob）+ Markdown 預覽
 - [ ] P7 無障礙、安全、工程化

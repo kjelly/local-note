@@ -22,7 +22,10 @@ import { bindCloudModal } from './ui/modal.js';
 import { installShortcuts, onShortcut } from './util/shortcut.js';
 import { initGapi } from './sync/gdrive.js';
 import { pickAndLinkFile } from './sync/disk.js';
-import { setLocalFileHandle, scheduleSync } from './sync/manager.js';
+import {
+  setLocalFileHandle, scheduleSync, reconcile,
+  enqueuePush, bootstrapSync, registerBackgroundSync,
+} from './sync/manager.js';
 import { webdavTestHandler } from './sync/webdav.js';
 
 async function boot() {
@@ -72,11 +75,27 @@ async function boot() {
     if (el) el.innerText = m || '';
   });
 
-  // 8. 同步按鈕（Phase 1 暫時只更新視覺）
+  // 8. 同步：bootstrap etag + 註冊背景同步 + 觸發首次 reconcile
+  await bootstrapSync();
+  reconcile().catch((e) => console.warn('reconcile failed', e));
   await initGapi().catch((e) => console.warn('gapi init skipped', e));
 
-  // 9. 註：sync 觸發在 saveCurrentState 內部
-  document.addEventListener('lb:note-saved', () => scheduleSync());
+  // 9. 監聽背景同步訊息
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if (e.data?.type === 'lb:sync-trigger') reconcile().catch(() => {});
+    });
+  }
+  registerBackgroundSync();
+
+  // 10. 線上 / 焦點恢復時自動 reconcile
+  window.addEventListener('online', () => reconcile().catch(() => {}));
+  window.addEventListener('focus', () => reconcile().catch(() => {}));
+
+  // 11. 本地變更 → 排入佇列（debounce 1.5s）
+  document.addEventListener('lb:note-saved', () => {
+    enqueuePush('webdav').then(() => scheduleSync());
+  });
 }
 
 function bindUI() {

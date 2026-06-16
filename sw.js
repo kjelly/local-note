@@ -5,6 +5,7 @@
 //   - fetch:
 //       * 同源 GET：cache-first，背景 stale-while-revalidate 更新
 //       * 其他：網路優先，失敗時回退快取
+//   - sync (Phase 5): 背景同步事件 → 通知 clients 觸發 reconcile
 
 const CACHE_NAME = 'local-brain-v24-shell-v1';
 const SHELL = [
@@ -38,7 +39,6 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // 跨源（Google APIs / Ollama）放行
   if (url.origin !== self.location.origin) return;
 
   event.respondWith((async () => {
@@ -48,7 +48,6 @@ self.addEventListener('fetch', (event) => {
       if (res && res.status === 200) cache.put(req, res.clone());
       return res;
     }).catch(() => cached);
-    // navigation 用 network-first，確保 SPA 不會卡在舊版
     if (req.mode === 'navigate') {
       try {
         const res = await fetchPromise;
@@ -58,4 +57,18 @@ self.addEventListener('fetch', (event) => {
     }
     return cached || fetchPromise;
   })());
+});
+
+// Phase 5：背景同步事件
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'lb-reconcile') {
+    event.waitUntil((async () => {
+      const clients = await self.clients.matchAll();
+      for (const c of clients) c.postMessage({ type: 'lb:sync-trigger' });
+    })());
+  }
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data === 'lb:skipWaiting') self.skipWaiting();
 });
