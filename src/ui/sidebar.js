@@ -102,7 +102,10 @@ export function renderSidebarList(notes, activeId) {
     sentinelTop.style.height = '0px';
     sentinelBottom.style.height = '0px';
     clear(itemsLayer);
-    itemsLayer.appendChild(h('div', { style: 'padding:20px; text-align:center; color:#888;' }, '無筆記'));
+    const empty = h('div', { style: 'padding:24px 16px; text-align:center; color:#7f8c8d;' });
+    empty.appendChild(h('p', { style: 'margin:0 0 12px 0; font-size:0.95rem;' }, '📝 還沒有任何筆記'));
+    empty.appendChild(h('p', { style: 'margin:0 0 12px 0; font-size:0.8rem; opacity:0.8;' }, '按 + 新增，或從選單匯入 JSON 備份'));
+    itemsLayer.appendChild(empty);
     return;
   }
   // 第一次 render 或 items 總數變動 → 重新建立
@@ -174,15 +177,17 @@ function cssEsc(s) {
 }
 
 function renderItem(n) {
+  const title = n.title?.value || '(無標題)';
+  const preview = (n.content?.value || '').slice(0, 40).replace(/\n/g, ' ');
   const li = h('li', {
     class: 'note-item' + (n.id === currentActiveId ? ' active' : ''),
     dataset: { id: n.id },
-    style: `height:${ITEM_HEIGHT}px;`,
+    style: `min-height:${ITEM_HEIGHT}px;`,
   });
   const info = h('div', { class: 'note-info' });
   if (n.pinned?.value) info.appendChild(h('span', { style: 'color:#f1c40f;margin-right:5px;' }, '📌'));
-  info.appendChild(h('span', { class: 'title' }, n.title?.value || '(無標題)'));
-  info.appendChild(h('span', { class: 'preview' }, (n.content?.value || '').slice(0, 40).replace(/\n/g, ' ')));
+  info.appendChild(h('span', { class: 'title' }, title));
+  info.appendChild(h('span', { class: 'preview' }, preview || ' '));
   li.appendChild(info);
   if (isBatchMode) {
     li.appendChild(h('input', { type: 'checkbox', class: 'batch-checkbox', value: n.id }));

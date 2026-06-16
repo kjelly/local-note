@@ -24,11 +24,11 @@
 
 <div id="cloudModal" class="modal-overlay">
   <div class="modal-box" id="cloudModalBox">
-    <div class="modal-header"><h3 id="cloudModalTitle">雲端同步設定</h3><button onclick="window.toggleCloudModal(false)" aria-label="關閉" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
+    <div class="modal-header"><h3 id="cloudModalTitle">雲端同步設定</h3><button data-action="close-cloud-modal" aria-label="關閉" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
     <div class="modal-body">
       <div style="display:flex; border-bottom:1px solid #ddd; margin-bottom:15px;">
-        <button onclick="window.switchTab('webdav')" id="tab-webdav" style="flex:1; padding:10px; background:none; border:none; border-bottom:2px solid #3498db; font-weight:bold;">WebDAV</button>
-        <button onclick="window.switchTab('gdrive')" id="tab-gdrive" style="flex:1; padding:10px; background:none; border:none; color:#aaa;">Google Drive</button>
+        <button data-action="switch-tab" data-tab="webdav" id="tab-webdav" style="flex:1; padding:10px; background:none; border:none; border-bottom:2px solid #3498db; font-weight:bold;">WebDAV</button>
+        <button data-action="switch-tab" data-tab="gdrive" id="tab-gdrive" style="flex:1; padding:10px; background:none; border:none; color:#aaa;">Google Drive</button>
       </div>
 
       <div id="webdav-section">
@@ -49,18 +49,18 @@
     </div>
     <div class="modal-footer">
       <span id="davTestStatus" style="font-size:0.8rem;margin-right:auto;"></span>
-      <button class="toolbar-btn" style="background:#2ecc71;color:white;" onclick="window.saveCloudConfig()">儲存設定</button>
+      <button class="toolbar-btn" style="background:#2ecc71;color:white;" data-action="save-cloud-config">儲存設定</button>
     </div>
   </div>
 </div>
 
 <div id="previewModal" class="modal-overlay">
   <div class="modal-box" id="previewModalBox" style="max-width:600px;">
-    <div class="modal-header"><h3 id="previewModalTitle">歷史預覽</h3><button onclick="window.closePreview()" aria-label="關閉" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
+    <div class="modal-header"><h3 id="previewModalTitle">歷史預覽</h3><button data-action="close-preview" aria-label="關閉" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
     <div class="modal-body" style="background:#f9f9f9;font-family:monospace;white-space:pre-wrap;" id="previewContent"></div>
     <div class="modal-footer">
-      <button class="toolbar-btn" onclick="window.closePreview()">取消</button>
-      <button class="toolbar-btn" style="background:#e74c3c;color:white;" onclick="window.confirmRestore()">還原</button>
+      <button class="toolbar-btn" data-action="close-preview">取消</button>
+      <button class="toolbar-btn" style="background:#e74c3c;color:white;" data-action="confirm-restore">還原</button>
     </div>
   </div>
 </div>
@@ -71,7 +71,7 @@
   <div class="sidebar-header">
     <div class="header-top">
       <h2>Local Brain v24</h2>
-      <button onclick="window.toggleSidebar(false)" aria-label="關閉側邊欄" style="background:none;border:none;color:white;display:none;" id="closeSidebarBtn">✕</button>
+      <button data-action="close-sidebar" aria-label="關閉側邊欄" style="background:none;border:none;color:white;display:none;" id="closeSidebarBtn">✕</button>
       <div id="normalActions" style="display:flex;gap:10px;align-items:center;">
         <button id="batchBtn" aria-label="進入整理模式" style="background:none;border:1px solid #555;color:#ccc;border-radius:4px;padding:2px 8px;font-size:0.8rem;cursor:pointer;" title="整理模式">🗑️ 整理</button>
         <button id="addBtn" aria-label="新增筆記" title="新增筆記">+</button>
@@ -164,7 +164,7 @@
 </div>
 
 <div id="aiSidebar" role="complementary" aria-label="AI 助手">
-  <div class="ai-header"><h3>Ollama</h3><button onclick="window.toggleAISidebar()" aria-label="關閉 AI 助手" style="border:none;background:none;color:white;font-size:1.5rem;">&times;</button></div>
+  <div class="ai-header"><h3>Ollama</h3><button data-action="close-ai-sidebar" aria-label="關閉 AI 助手" style="border:none;background:none;color:white;font-size:1.5rem;">&times;</button></div>
   <div class="ai-settings">
     <div class="setting-row"><label>Host:</label><input id="aiHost" value="http://localhost:11434"></div>
     <div class="setting-row"><label>Model:</label><input id="aiModel" value="llama3.2"></div>

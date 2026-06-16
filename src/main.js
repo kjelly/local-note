@@ -3,6 +3,7 @@
 // 2. 跑 IndexedDB migration
 // 3. 初始化各 UI 元件
 // 4. 串接 store 訂閱，驅動畫面重渲染
+// 5. 用 data-action 屬性綁定 inline button（避免 CSP 阻擋 inline onclick）
 
 import { putNote, storageUsageRatio } from './core/idb.js';
 import { runMigration, clearLegacyIfExpired } from './core/migration.js';
@@ -16,9 +17,13 @@ import {
   getFilteredNotes,
 } from './ui/editor.js';
 import { bindLinks, toggleLinkSearch } from './ui/links.js';
-import { bindHistory } from './ui/history.js';
-import { bindAIPanel } from './ui/ai-panel.js';
-import { bindCloudModal } from './ui/modal.js';
+import { bindHistory, closePreview, confirmRestore } from './ui/history.js';
+import {
+  bindAIPanel, toggleAISidebar, sendToAI, summarizeNote, clearChat,
+} from './ui/ai-panel.js';
+import {
+  bindCloudModal, switchTab, toggleCloudModal, saveCloudConfig,
+} from './ui/modal.js';
 import { installShortcuts, onShortcut } from './util/shortcut.js';
 import { initGapi } from './sync/gdrive.js';
 import { pickAndLinkFile } from './sync/disk.js';
@@ -29,40 +34,51 @@ import {
 import { webdavTestHandler } from './sync/webdav.js';
 
 async function boot() {
+  console.log('[lb] booting v24...');
+
   // 1. 註冊 PWA manifest（data URL）與 service worker
   registerManifest();
   registerSW();
 
-  // 2. 跑 migration 並清掉過期 legacy
+  // 2. 跑 migration
   try {
     const r = await runMigration();
-    if (r.migrated) console.log(`[migration] ${r.migrated} 筆從 localStorage 匯入`);
-  } catch (e) { console.error('migration failed', e); }
+    if (r.migrated) console.log(`[lb] migration: ${r.migrated} 筆從 localStorage 匯入`);
+  } catch (e) { console.error('[lb] migration failed', e); }
   clearLegacyIfExpired().catch(() => {});
 
-  // 3. 從 IndexedDB 載入所有筆記
-  await loadAllNotes();
+  // 3. 載入所有筆記
+  try {
+    await loadAllNotes();
+    console.log(`[lb] 載入 ${notesStore.get().length} 筆筆記`);
+  } catch (e) { console.error('[lb] loadAllNotes failed', e); }
 
-  // 4. 配額檢查
+  // 4. 配額
   checkQuota();
 
-  // 5. 綁定 UI
-  bindUI();
-  bindCloudModal();
-  bindAIPanel();
-  bindHistory();
-  bindLinks();
-  mountSidebar(document.getElementById('sidebar'));
-  bindEditorInputs();
+  // 5. 綁定 UI 元件
+  try {
+    bindUI();
+    bindCloudModal();
+    bindAIPanel();
+    bindHistory();
+    bindLinks();
+    mountSidebar(document.getElementById('sidebar'));
+    bindEditorInputs();
+  } catch (e) { console.error('[lb] bindUI failed', e); }
 
   // 6. 初始顯示
   if (notesStore.get().length > 0) loadNote(notesStore.get()[0].id);
   else showEmptyState();
 
-  // 7. store 訂閱 → 畫面
+  // 7. 立刻 render 一次 sidebar（即使沒有 subscribe 觸發）
+  try {
+    renderSidebarList(getFilteredNotes(), activeNoteId.get());
+  } catch (e) { console.error('[lb] initial render failed', e); }
+
+  // 8. store 訂閱 → 畫面
   notesStore.subscribe((all) => {
-    const filtered = getFilteredNotes();
-    renderSidebarList(filtered, activeNoteId.get());
+    renderSidebarList(getFilteredNotes(), activeNoteId.get());
   });
   activeNoteId.subscribe((id) => {
     if (id) {
@@ -75,12 +91,12 @@ async function boot() {
     if (el) el.innerText = m || '';
   });
 
-  // 8. 同步：bootstrap etag + 註冊背景同步 + 觸發首次 reconcile
+  // 9. 同步 bootstrap
   await bootstrapSync();
   reconcile().catch((e) => console.warn('reconcile failed', e));
   await initGapi().catch((e) => console.warn('gapi init skipped', e));
 
-  // 9. 監聽背景同步訊息
+  // 10. 背景同步訊息
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', (e) => {
       if (e.data?.type === 'lb:sync-trigger') reconcile().catch(() => {});
@@ -88,23 +104,26 @@ async function boot() {
   }
   registerBackgroundSync();
 
-  // 10. 線上 / 焦點恢復時自動 reconcile
+  // 11. 線上 / 焦點恢復時自動 reconcile
   window.addEventListener('online', () => reconcile().catch(() => {}));
   window.addEventListener('focus', () => reconcile().catch(() => {}));
 
-  // 11. 本地變更 → 排入佇列（debounce 1.5s）
+  // 12. 本地變更 → 排入佇列
   document.addEventListener('lb:note-saved', () => {
     enqueuePush('webdav').then(() => scheduleSync());
   });
+
+  console.log('[lb] boot 完成');
 }
 
 function bindUI() {
+  // 一般按鈕（id 直綁）
   document.getElementById('addBtn').addEventListener('click', () => createNote());
   document.getElementById('emptyCreateBtn').addEventListener('click', () => createNote());
   document.getElementById('deleteBtn').addEventListener('click', () => deleteCurrentNote());
   document.getElementById('pinBtn').addEventListener('click', () => togglePin());
-  document.getElementById('aiBtn').addEventListener('click', () => window.toggleAISidebar());
-  document.getElementById('openAIBtn').addEventListener('click', () => window.toggleAISidebar());
+  document.getElementById('aiBtn').addEventListener('click', () => toggleAISidebar());
+  document.getElementById('openAIBtn').addEventListener('click', () => toggleAISidebar());
   document.getElementById('openSidebarBtn').addEventListener('click', () => toggleSidebar(true));
   document.getElementById('overlayBackdrop').addEventListener('click', () => toggleSidebar(false));
   document.getElementById('closeSplitBtn').addEventListener('click', () => openSplitView(null));
@@ -117,7 +136,7 @@ function bindUI() {
     deleteSelectedNotes(ids);
   });
 
-  document.getElementById('cloudBtn').addEventListener('click', () => window.toggleCloudModal(true));
+  document.getElementById('cloudBtn').addEventListener('click', () => toggleCloudModal(true));
   document.getElementById('diskBtn').addEventListener('click', async () => {
     const h = await pickAndLinkFile();
     if (!h) return;
@@ -126,7 +145,6 @@ function bindUI() {
     if (btn) { btn.className = 'synced'; btn.innerText = '💾 已連結'; }
   });
   document.getElementById('gDriveBtn').addEventListener('click', () => {
-    // Phase 5 接入；Phase 1 暫無行為
     console.log('gdrive sync: pending Phase 5');
   });
 
@@ -137,9 +155,22 @@ function bindUI() {
   document.getElementById('fileInput').addEventListener('change', (e) => importData(e.target));
 
   // AI
-  document.getElementById('sendBtn').addEventListener('click', () => window.sendToAI());
-  document.getElementById('summarizeBtn').addEventListener('click', () => window.summarizeNote());
-  document.getElementById('clearChatBtn').addEventListener('click', () => window.clearChat());
+  document.getElementById('sendBtn').addEventListener('click', () => sendToAI());
+  document.getElementById('summarizeBtn').addEventListener('click', () => summarizeNote());
+  document.getElementById('clearChatBtn').addEventListener('click', () => clearChat());
+
+  // 用 data-action 綁定（取代 index.html 內的 inline onclick）
+  delegateDataAction(document, 'click', {
+    'close-cloud-modal': () => toggleCloudModal(false),
+    'save-cloud-config': () => saveCloudConfig(),
+    'close-sidebar': () => toggleSidebar(false),
+    'close-ai-sidebar': () => toggleAISidebar(),
+    'close-preview': () => closePreview(),
+    'confirm-restore': () => confirmRestore(),
+  });
+  delegateDataAction(document, 'click', {
+    'switch-tab': (el) => switchTab(el.dataset.tab),
+  });
 
   // 快捷鍵
   installShortcuts();
@@ -149,6 +180,17 @@ function bindUI() {
   onShortcut('Ctrl+L', () => toggleLinkSearch());
   onShortcut('Ctrl+J', () => navigateList(1));
   onShortcut('Ctrl+K', () => navigateList(-1));
+}
+
+// data-action 事件委派
+function delegateDataAction(root, type, handlers) {
+  root.addEventListener(type, (e) => {
+    const el = e.target.closest('[data-action]');
+    if (!el || !root.contains(el)) return;
+    const action = el.dataset.action;
+    const handler = handlers[action];
+    if (handler) handler(el, e);
+  });
 }
 
 function navigateList(dir) {
@@ -207,12 +249,13 @@ function registerManifest() {
     }],
   };
   const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-  document.getElementById('my-manifest-placeholder').href = URL.createObjectURL(blob);
+  const ph = document.getElementById('my-manifest-placeholder');
+  if (ph) ph.href = URL.createObjectURL(blob);
 }
 
 function registerSW() {
   if (!('serviceWorker' in navigator)) return;
-  // 開發時用 vite dev server 不註冊 sw（避免 HMR 衝突）
+  // dev server 不註冊
   if (location.hostname === 'localhost' && location.port === '5173') return;
   navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('SW register failed', e));
 }

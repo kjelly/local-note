@@ -1,5 +1,6 @@
 // ui/modal.js — 雲端設定 modal
 // Phase 7：focus trap、Esc 關閉、aria-modal/role
+// Phase 9：export named functions 給 main.js 用 addEventListener 綁定
 
 import { getConfig, setConfig } from '../core/config.js';
 import { webdavTestHandler } from '../sync/webdav.js';
@@ -19,7 +20,7 @@ export async function bindCloudModal() {
   if (g.apiKey) document.getElementById('gApiKey').value = g.apiKey;
 }
 
-window.switchTab = function (tab) {
+export function switchTab(tab) {
   if (tab === 'webdav') {
     document.getElementById('webdav-section').style.display = 'block';
     document.getElementById('gdrive-section').style.display = 'none';
@@ -31,9 +32,9 @@ window.switchTab = function (tab) {
     document.getElementById('tab-gdrive').style.borderBottom = '2px solid #3498db';
     document.getElementById('tab-webdav').style.borderBottom = 'none';
   }
-};
+}
 
-window.toggleCloudModal = function (show) {
+export function toggleCloudModal(show) {
   const overlay = document.getElementById('cloudModal');
   const box = overlay.querySelector('.modal-box');
   if (show) {
@@ -44,7 +45,7 @@ window.toggleCloudModal = function (show) {
     if (box) box.id = box.id || 'cloudModalBox';
     focusFirst(box || overlay);
     unbindTrap = trapFocus(box || overlay);
-    unbindEsc = onEscape(overlay, () => window.toggleCloudModal(false));
+    unbindEsc = onEscape(overlay, () => toggleCloudModal(false));
   } else {
     overlay.style.display = 'none';
     if (unbindTrap) { unbindTrap(); unbindTrap = null; }
@@ -54,9 +55,9 @@ window.toggleCloudModal = function (show) {
       lastFocus = null;
     }
   }
-};
+}
 
-window.saveCloudConfig = async function () {
+export async function saveCloudConfig() {
   const webdavConfig = {
     url: document.getElementById('davUrl').value.trim(),
     user: document.getElementById('davUser').value.trim(),
@@ -68,9 +69,13 @@ window.saveCloudConfig = async function () {
     apiKey: document.getElementById('gApiKey').value.trim(),
   };
   await setConfig('gdrive', googleConfig);
-  window.toggleCloudModal(false);
+  toggleCloudModal(false);
   const cb = document.getElementById('cloudBtn');
   if (cb) { cb.className = 'synced'; cb.innerText = '☁️ 雲端'; }
-};
+}
 
+// 也掛到 window，給 inline onclick 與舊呼叫相容
+window.switchTab = switchTab;
+window.toggleCloudModal = toggleCloudModal;
+window.saveCloudConfig = saveCloudConfig;
 window.testWebDAV = webdavTestHandler;

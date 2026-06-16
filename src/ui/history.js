@@ -51,7 +51,7 @@ function openPreview(idx) {
   unbindEsc = onEscape(overlay, closePreview);
 }
 
-function closePreview() {
+export function closePreview() {
   const overlay = document.getElementById('previewModal');
   overlay.style.display = 'none';
   pendingRestoreIndex = -1;
@@ -63,7 +63,7 @@ function closePreview() {
   }
 }
 
-function confirmRestore() {
+export function confirmRestore() {
   if (pendingRestoreIndex === -1) return;
   const all = notesStore.get();
   const idx = all.findIndex((n) => n.id === activeNoteId.get());
