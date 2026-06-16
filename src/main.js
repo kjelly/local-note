@@ -214,7 +214,7 @@ function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   // 開發時用 vite dev server 不註冊 sw（避免 HMR 衝突）
   if (location.hostname === 'localhost' && location.port === '5173') return;
-  navigator.serviceWorker.register('/sw.js').catch((e) => console.warn('SW register failed', e));
+  navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('SW register failed', e));
 }
 
 async function checkQuota() {

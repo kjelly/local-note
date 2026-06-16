@@ -45,8 +45,21 @@ test/                     # Vitest 單元測試
 
 ```bash
 npm run dev       # 開發伺服器
-npm run build     # 產出靜態檔
+npm run build     # 產出靜態檔到 dist/
 npm test          # 跑單元測試（144 個）
 npm run lint      # ESLint 檢查
 npm run perf      # 1000 筆冷啟/搜尋效能 smoke test
 ```
+
+## 部署到 GitHub Pages
+
+推到 `main` 分支後，`.github/workflows/deploy.yml` 會自動：
+1. 跑 `npm test`
+2. 跑 `npm run build`
+3. 把 `dist/` 部署到 GitHub Pages
+
+首次使用要：
+- Repo → Settings → Pages → Source 設為 **GitHub Actions**
+- 之後 `https://<user>.github.io/<repo>/` 就會拿到靜態站
+
+路徑用 `./` 相對（`base: './'`），所以子路徑部署也正常。`sw.js` / `.nojekyll` / `404.html` 放在 `public/`，Vite 會原樣複製到 `dist/`。
