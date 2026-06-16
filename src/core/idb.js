@@ -1,14 +1,16 @@
 // IndexedDB 封裝：以 idb 套件為骨幹
-// Phase 2：note 改為 LWW 結構；保留 v23 格式於 legacy store
+// Phase 2：note 改為 LWW 結構
+// Phase 6：新增 attachments store（IndexedDB blob）
 
 import { openDB } from 'idb';
 
 const DB_NAME = 'local_brain_db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export const STORES = {
-  notes: 'notes',          // LWW 結構：{ id, title:{value,rev,clock,updatedAt}, ... }
-  meta: 'meta',            // { key, value } — deviceId, lastSyncAt, lastMigration
+  notes: 'notes',          // LWW 結構
+  attachments: 'attachments', // { id, noteId, blob, mime, createdAt }
+  meta: 'meta',            // { key, value }
   legacy: 'legacy',        // 保留 30 天的 localStorage 備份（明文）
 };
 
@@ -21,7 +23,6 @@ export function getDB() {
       if (oldVersion < 1) {
         if (!db.objectStoreNames.contains(STORES.notes)) {
           const s = db.createObjectStore(STORES.notes, { keyPath: 'id' });
-          // 同時建立 updatedAtTs（v23 相容）與 updatedAt（LWW 用）
           s.createIndex('updatedAt', 'updatedAt');
           s.createIndex('updatedAtTs', 'updatedAtTs');
         }
@@ -32,7 +33,12 @@ export function getDB() {
           db.createObjectStore(STORES.legacy, { keyPath: 'key' });
         }
       }
-      // v2：note 結構改為 LWW；索引已於 v1 建立，不需再動
+      if (oldVersion < 3) {
+        if (!db.objectStoreNames.contains(STORES.attachments)) {
+          const a = db.createObjectStore(STORES.attachments, { keyPath: 'id' });
+          a.createIndex('noteId', 'noteId');
+        }
+      }
     },
   });
   return _dbPromise;
@@ -65,6 +71,40 @@ export async function clearNotes() {
   return db.clear(STORES.notes);
 }
 
+// --- attachments ---
+
+export async function putAttachment(att) {
+  const db = await getDB();
+  return db.put(STORES.attachments, att);
+}
+
+export async function getAttachment(id) {
+  const db = await getDB();
+  return db.get(STORES.attachments, id);
+}
+
+export async function getAttachmentsByNote(noteId) {
+  const db = await getDB();
+  return db.getAllFromIndex(STORES.attachments, 'noteId', noteId);
+}
+
+export async function deleteAttachment(id) {
+  const db = await getDB();
+  return db.delete(STORES.attachments, id);
+}
+
+export async function deleteAttachmentsByNote(noteId) {
+  const db = await getDB();
+  const tx = db.transaction(STORES.attachments, 'readwrite');
+  const idx = tx.objectStore(STORES.attachments).index('noteId');
+  let cursor = await idx.openCursor(noteId);
+  while (cursor) {
+    await cursor.delete();
+    cursor = await cursor.continue();
+  }
+  await tx.done;
+}
+
 export async function getMeta(key) {
   const db = await getDB();
   const row = await db.get(STORES.meta, key);
@@ -76,11 +116,9 @@ export async function setMeta(key, value) {
   return db.put(STORES.meta, { key, value });
 }
 
-// 查估算的儲存配額（回傳 0~1 之間的百分比；無 API 時回傳 null）
+// 查估算的儲存配額
 export async function storageUsageRatio() {
-  if (typeof navigator === 'undefined' || !navigator.storage?.estimate) {
-    return null;
-  }
+  if (typeof navigator === 'undefined' || !navigator.storage?.estimate) return null;
   const { usage = 0, quota = 1 } = await navigator.storage.estimate();
   if (!quota) return null;
   return usage / quota;

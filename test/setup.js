@@ -1,4 +1,17 @@
 // 測試共用 setup
-// 預留：日後所有 *.test.js 之前都會跑這份檔
+
+// jsdom 沒實作 URL.createObjectURL / revokeObjectURL；測試環境用 polyfill
+if (typeof URL.createObjectURL !== 'function') {
+  let counter = 0;
+  URL.createObjectURL = (blob) => {
+    const id = `blob:mock-${++counter}`;
+    URL._mockBlobs = URL._mockBlobs || new Map();
+    URL._mockBlobs.set(id, blob);
+    return id;
+  };
+  URL.revokeObjectURL = (url) => {
+    if (URL._mockBlobs) URL._mockBlobs.delete(url);
+  };
+}
 
 export {};

@@ -12,10 +12,12 @@ import {
   restoreFromHistory,
 } from '../model/note.js';
 import {
-  getAllNotes, putNote, deleteNote as dbDeleteNote,
+  getAllNotes, putNote, deleteNote as dbDeleteNote, deleteAttachmentsByNote,
 } from '../core/idb.js';
 import { normalizeNote } from '../model/note.js';
 import { buildIndex, indexUpdate, searchIndex, fuzzyFallback } from '../core/search-index.js';
+import { attachToEditor } from './attachments.js';
+import { bindEditorToolbar, renderPreview, resetPreview } from './editor-toolbar.js';
 
 const HISTORY_INTERVAL = 60 * 1000;
 const MAX_HISTORY = 20;
@@ -98,6 +100,8 @@ export function loadNote(id) {
   if (elEditor) elEditor.value = view.content;
   document.getElementById('noteContainer').style.display = 'flex';
   document.getElementById('emptyState').style.display = 'none';
+  resetPreview();
+  renderPreview();
   document.dispatchEvent(new CustomEvent('lb:note-loaded', { detail: { id } }));
 }
 
@@ -167,6 +171,9 @@ export function bindEditorInputs() {
     elTitle.addEventListener('click', () => elTitle.select());
   }
   if (elEditor) elEditor.addEventListener('input', scheduleSave);
+  // Phase 6：拖拽/貼上附件、編輯/預覽切換
+  bindEditorToolbar();
+  attachToEditor(elEditor, { noteId: null });
 }
 
 export async function deleteCurrentNote() {
@@ -174,6 +181,7 @@ export async function deleteCurrentNote() {
   if (!id) return;
   if (!confirm('刪除？')) return;
   await dbDeleteNote(id);
+  await deleteAttachmentsByNote(id);
   const all = notesStore.get().filter((n) => n.id !== id);
   notesStore.set(all);
   indexUpdate(searchIdx, id, null);

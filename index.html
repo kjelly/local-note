@@ -135,12 +135,17 @@
       <select id="historySelect" class="history-select"><option value="-1">時光機</option></select>
       <button class="toolbar-btn delete" id="deleteBtn">刪除</button>
       <div style="flex:1"></div>
+      <button id="editorModeBtn" class="toolbar-btn" title="切換編輯/預覽">👁️ 預覽</button>
+      <button id="insertFileBtn" class="toolbar-btn" title="插入圖片或附件">📎 插入</button>
+      <input type="file" id="fileInputMarkdown" style="display:none" accept="image/*,.pdf,.txt,.md">
+      <div style="width:5px"></div>
       <button id="pinBtn" class="toolbar-btn">📌 置頂</button>
       <div style="width:5px"></div>
       <button class="toolbar-btn" id="aiBtn" style="background:#6c5ce7;color:white;">🤖 AI</button>
       <span id="status" style="font-size:0.75rem;color:#999;margin-left:5px;"></span>
     </div>
-    <textarea id="editor" placeholder="在此輸入內容 (Ctrl+I)..."></textarea>
+    <textarea id="editor" placeholder="在此輸入內容 (Ctrl+I)... 支援 Markdown 預覽與拖入附件"></textarea>
+    <div id="previewArea" style="display:none;"></div>
   </div>
 
   <div id="splitPanel">
