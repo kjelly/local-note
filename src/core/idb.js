@@ -1,13 +1,13 @@
 // IndexedDB 封裝：以 idb 套件為骨幹
-// Phase 1 目標：把 v23 localStorage 資料搬進來，後續用物件庫取代字串
+// Phase 2：note 改為 LWW 結構；保留 v23 格式於 legacy store
 
 import { openDB } from 'idb';
 
 const DB_NAME = 'local_brain_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const STORES = {
-  notes: 'notes',          // { id, title, content, links, pinned, history, updatedAtTs, ... }
+  notes: 'notes',          // LWW 結構：{ id, title:{value,rev,clock,updatedAt}, ... }
   meta: 'meta',            // { key, value } — deviceId, lastSyncAt, lastMigration
   legacy: 'legacy',        // 保留 30 天的 localStorage 備份（明文）
 };
@@ -21,6 +21,8 @@ export function getDB() {
       if (oldVersion < 1) {
         if (!db.objectStoreNames.contains(STORES.notes)) {
           const s = db.createObjectStore(STORES.notes, { keyPath: 'id' });
+          // 同時建立 updatedAtTs（v23 相容）與 updatedAt（LWW 用）
+          s.createIndex('updatedAt', 'updatedAt');
           s.createIndex('updatedAtTs', 'updatedAtTs');
         }
         if (!db.objectStoreNames.contains(STORES.meta)) {
@@ -30,9 +32,15 @@ export function getDB() {
           db.createObjectStore(STORES.legacy, { keyPath: 'key' });
         }
       }
+      // v2：note 結構改為 LWW；索引已於 v1 建立，不需再動
     },
   });
   return _dbPromise;
+}
+
+// 測試用：清除模組快取
+export function _resetForTest() {
+  _dbPromise = null;
 }
 
 // --- generic helpers ---

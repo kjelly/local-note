@@ -31,13 +31,20 @@ export function mergeClock(a, b) {
   return out;
 }
 
-// clock A 是否 dominates B（A 在每個維度都 >= B，且至少一個 >）
+// clock A 是否 dominates B（A 在每個 device 上都 >= B，且至少一個 >）
+// 注意：當兩個 clock 完全 disjoint（沒共用 device）時，
+// 真正的 LWW 應視為「並列」，由 tie-breaker（如 rev）決定。
+// 這裡採寬鬆 dominates：共用 key 都 >= 且至少一個 >；一方有對方沒有的 device 也算 >。
 export function clockDominates(a, b) {
-  const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+  const aK = a || {};
+  const bK = b || {};
+  if (Object.keys(aK).length === 0 && Object.keys(bK).length === 0) return false;
+  if (Object.keys(bK).length === 0) return Object.keys(aK).length > 0;
+  if (Object.keys(aK).length === 0) return false;
   let greater = false;
-  for (const k of keys) {
-    const av = (a || {})[k] || 0;
-    const bv = (b || {})[k] || 0;
+  for (const k of new Set([...Object.keys(aK), ...Object.keys(bK)])) {
+    const av = aK[k] || 0;
+    const bv = bK[k] || 0;
     if (av < bv) return false;
     if (av > bv) greater = true;
   }

@@ -1,14 +1,14 @@
-// links.js — 雙向連結
+// links.js — 雙向連結（Phase 2：note 改為 LWW 結構）
 
 import { h, clear, delegate } from '../util/dom.js';
 import { notesStore, activeNoteId, scheduleSave, loadNote } from './editor.js';
 import { putNote } from '../core/idb.js';
+import { applyPatch, noteView } from '../model/note.js';
 
 let linkSearchIndex = -1;
 
 export function bindLinks() {
   document.addEventListener('lb:note-loaded', () => renderLinksSection());
-  const drop = document.getElementById('linkSearchDropdown');
   const input = document.getElementById('linkSearchInput');
   const list = document.getElementById('linkOptionsList');
 
@@ -57,17 +57,18 @@ function filterLinkOptions() {
   clear(list);
   linkSearchIndex = -1;
   if (!cur) return;
+  const curLinks = cur.links?.value || [];
   const cands = notesStore.get().filter((n) =>
     n.id !== cur.id &&
-    (!cur.links || !cur.links.includes(n.id)) &&
-    (n.title.toLowerCase().includes(kw) || n.content.toLowerCase().includes(kw))
+    !curLinks.includes(n.id) &&
+    (n.title.value.toLowerCase().includes(kw) || n.content.value.toLowerCase().includes(kw))
   );
   if (cands.length === 0) {
     list.appendChild(h('div', { style: 'padding:10px;color:#999;' }, '無'));
     return;
   }
   cands.slice(0, 10).forEach((n) => {
-    const d = h('div', { class: 'link-option', dataset: { id: n.id } }, n.title || '(無標題)');
+    const d = h('div', { class: 'link-option', dataset: { id: n.id } }, n.title.value || '(無標題)');
     d.addEventListener('click', () => addLink(n.id));
     list.appendChild(d);
   });
@@ -89,11 +90,16 @@ function addLink(targetId) {
   const all = notesStore.get();
   const cur = all.find((n) => n.id === activeNoteId.get());
   if (!cur) return;
-  if (!cur.links) cur.links = [];
-  if (!cur.links.includes(targetId)) {
-    cur.links.push(targetId);
-    putNote(cur);
-  }
+  const curLinks = cur.links?.value || [];
+  if (curLinks.includes(targetId)) return;
+  const next = applyPatch(cur, { links: [...curLinks, targetId] });
+  if (next === cur) return;
+  Object.assign(cur, next);
+  // 同步到 store
+  const idx = all.findIndex((n) => n.id === cur.id);
+  if (idx !== -1) all[idx] = next;
+  notesStore.set([...all]);
+  putNote({ ...next, updatedAt: Date.now() });
   document.getElementById('linkSearchDropdown').style.display = 'none';
   scheduleSave();
   renderLinksSection();
@@ -103,8 +109,13 @@ function removeLink(targetId) {
   const all = notesStore.get();
   const cur = all.find((n) => n.id === activeNoteId.get());
   if (!cur) return;
-  cur.links = (cur.links || []).filter((id) => id !== targetId);
-  putNote(cur);
+  const curLinks = cur.links?.value || [];
+  const next = applyPatch(cur, { links: curLinks.filter((id) => id !== targetId) });
+  if (next === cur) return;
+  const idx = all.findIndex((n) => n.id === cur.id);
+  if (idx !== -1) all[idx] = next;
+  notesStore.set([...all]);
+  putNote({ ...next, updatedAt: Date.now() });
   scheduleSave();
   renderLinksSection();
 }
@@ -118,14 +129,14 @@ function renderLinksSection() {
   const cur = notesStore.get().find((n) => n.id === activeNoteId.get());
   if (!cur) return;
   const all = notesStore.get();
+  const curLinks = cur.links?.value || [];
 
-  // outbound
-  if (cur.links && cur.links.length > 0) {
-    cur.links.forEach((lid) => {
+  if (curLinks.length > 0) {
+    curLinks.forEach((lid) => {
       const t = all.find((n) => n.id === lid);
       if (!t) return;
       const tag = h('span', { class: 'link-tag' });
-      const goto = h('span', { dataset: { id: lid } }, t.title || '(無標題)');
+      const goto = h('span', { dataset: { id: lid } }, t.title.value || '(無標題)');
       goto.style.cursor = 'pointer';
       goto.addEventListener('click', () => loadNote(lid));
       const rm = h('span', { class: 'remove-link' }, '×');
@@ -139,11 +150,10 @@ function renderLinksSection() {
     out.appendChild(h('span', { style: 'color:#ccc; font-size:0.8rem;' }, '無'));
   }
 
-  // inbound
-  const back = all.filter((n) => n.links && n.links.includes(cur.id));
+  const back = all.filter((n) => (n.links?.value || []).includes(cur.id));
   if (back.length > 0) {
     back.forEach((bn) => {
-      const tag = h('span', { class: 'backlink-tag' }, '← ' + (bn.title || '(無標題)'));
+      const tag = h('span', { class: 'backlink-tag' }, '← ' + (bn.title.value || '(無標題)'));
       tag.addEventListener('click', () => loadNote(bn.id));
       inn.appendChild(tag);
     });

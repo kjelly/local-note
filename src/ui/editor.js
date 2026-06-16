@@ -1,45 +1,56 @@
 // editor.js — 編輯器、標題、置頂、刪除、對照
-// 取代原 index.html 內的 #noteContainer / saveCurrentState / togglePin / deleteCurrentNote
+// Phase 2：note 改為 LWW 結構；store 內部存放完整 LWW 物件，
+// UI 層透過 noteView() 取得扁平 view
 
 import { signal } from '../core/store.js';
-import { createNote as makeNote, applyLocalEdit } from '../model/note.js';
-import { getAllNotes, putNote, deleteNote as dbDeleteNote } from '../core/idb.js';
-import { now, formatTime } from '../util/time.js';
+import {
+  createNote as makeNote,
+  applyPatch,
+  noteView,
+  pushHistory,
+  restoreFromHistory,
+} from '../model/note.js';
+import {
+  getAllNotes, putNote, deleteNote as dbDeleteNote,
+} from '../core/idb.js';
+import { normalizeNote } from '../model/note.js';
 
-const MAX_HISTORY = 20;
 const HISTORY_INTERVAL = 60 * 1000;
+const MAX_HISTORY = 20;
 
 export const activeNoteId = signal(null);
-export const notesStore = signal([]); // 單一真相源
+export const notesStore = signal([]); // 完整 LWW 物件
 export const searchKeyword = signal('');
 export const searchMode = signal('AND');
 export const statusMessage = signal('');
 
-// 從 IndexedDB 載入所有筆記，初始化 store
 export async function loadAllNotes() {
   const all = await getAllNotes();
-  const migrated = all.map(normalizeMigrated);
+  const migrated = all.map(normalizeNote);
   sortNotesInPlace(migrated);
   notesStore.set(migrated);
 }
 
-// localStorage → IndexedDB 之後，note 物件已不需要特別 migrate；
-// 但若使用者從 v23 直接匯入匯出，title / content 仍是字串
-function normalizeMigrated(n) {
-  if (!n.updatedAtTs) {
-    n.updatedAtTs = Date.parse(n.updatedAt) || Date.now();
-  }
-  if (!n.updatedAt) n.updatedAt = formatTime(n.updatedAtTs);
-  if (!Array.isArray(n.links)) n.links = [];
-  if (!Array.isArray(n.history)) n.history = [];
-  return n;
-}
-
+// 用 noteView 給 UI 用：title/content 攤平；同時支援排序用 updatedAt
 export function sortNotesInPlace(arr) {
   arr.sort((a, b) => {
-    if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
-    return (b.updatedAtTs || 0) - (a.updatedAtTs || 0);
+    const ap = !!a.pinned?.value;
+    const bp = !!b.pinned?.value;
+    if (ap !== bp) return ap ? -1 : 1;
+    const at = latestTs(a);
+    const bt = latestTs(b);
+    return bt - at;
   });
+}
+
+function latestTs(note) {
+  return Math.max(
+    note.title?.updatedAt || 0,
+    note.content?.updatedAt || 0,
+    note.links?.updatedAt || 0,
+    note.pinned?.updatedAt || 0,
+    note.createdAt || 0,
+  );
 }
 
 export function getFilteredNotes() {
@@ -49,7 +60,7 @@ export function getFilteredNotes() {
   const mode = searchMode.get();
   const keys = kw.split(/\s+/).filter(Boolean);
   return all.filter((n) => {
-    const txt = (n.title + n.content).toLowerCase();
+    const txt = ((n.title?.value || '') + (n.content?.value || '')).toLowerCase();
     return mode === 'AND' ? keys.every((k) => txt.includes(k)) : keys.some((k) => txt.includes(k));
   });
 }
@@ -70,13 +81,13 @@ export function loadNote(id) {
   activeNoteId.set(id);
   const note = notesStore.get().find((n) => n.id === id);
   if (!note) return;
+  const view = noteView(note);
   const elTitle = document.getElementById('noteTitle');
   const elEditor = document.getElementById('editor');
-  if (elTitle) elTitle.value = note.title || '';
-  if (elEditor) elEditor.value = note.content || '';
+  if (elTitle) elTitle.value = view.title;
+  if (elEditor) elEditor.value = view.content;
   document.getElementById('noteContainer').style.display = 'flex';
   document.getElementById('emptyState').style.display = 'none';
-  // 通知 links / history 重渲染
   document.dispatchEvent(new CustomEvent('lb:note-loaded', { detail: { id } }));
 }
 
@@ -89,48 +100,62 @@ export function scheduleSave() {
 export async function saveCurrentState(force = false) {
   const id = activeNoteId.get();
   if (!id) return;
-  const note = notesStore.get().find((n) => n.id === id);
-  if (!note) return;
+  const all = notesStore.get();
+  const idx = all.findIndex((n) => n.id === id);
+  if (idx === -1) return;
+  const note = all[idx];
   const elTitle = document.getElementById('noteTitle');
   const elEditor = document.getElementById('editor');
   const newTitle = elTitle?.value ?? '';
   const newContent = elEditor?.value ?? '';
-  if (!force && note.title === newTitle && note.content === newContent) return;
+
+  const view = noteView(note);
+  if (!force && view.title === newTitle && view.content === newContent) return;
 
   // 時光機
-  if (newContent !== note.content) {
+  let withHistory = note;
+  if (newContent !== view.content) {
     const last = note.history?.[0];
-    if (!last || (now() - (last.timestamp || 0) >= HISTORY_INTERVAL)) {
-      note.history = note.history || [];
-      note.history.unshift({ time: formatTime(now()), timestamp: now(), content: note.content });
-      if (note.history.length > MAX_HISTORY) note.history = note.history.slice(0, MAX_HISTORY);
+    if (!last || (Date.now() - (last.timestamp || 0) >= HISTORY_INTERVAL)) {
+      withHistory = pushHistory(note, {
+        time: new Date().toLocaleString(),
+        timestamp: Date.now(),
+        content: view.content,
+      });
     }
   }
 
-  const next = applyLocalEdit(note, { title: newTitle, content: newContent });
-  const all = notesStore.get();
-  const idx = all.findIndex((n) => n.id === id);
-  if (idx !== -1) all[idx] = next;
+  const next = applyPatch(withHistory, { title: newTitle, content: newContent });
+  if (next === note) return; // 無 dirty
+
+  all[idx] = next;
   sortNotesInPlace(all);
   notesStore.set([...all]);
   await persist(next);
   statusMessage.set('已儲存');
   setTimeout(() => statusMessage.set(''), 1500);
-  // 觸發同步（Phase 1 暫時無 hub，僅在 main.js 註冊時呼叫）
   document.dispatchEvent(new CustomEvent('lb:note-saved', { detail: { id } }));
 }
 
 async function persist(note) {
-  await putNote(note);
+  // 把最新 updatedAt 寫到頂層供索引使用
+  const updatedAt = Math.max(
+    note.title?.updatedAt || 0,
+    note.content?.updatedAt || 0,
+    note.links?.updatedAt || 0,
+    note.pinned?.updatedAt || 0,
+  );
+  await putNote({ ...note, updatedAt });
 }
 
-// 綁定輸入框事件（由 main.js 啟動時呼叫）
 export function bindEditorInputs() {
   const elTitle = document.getElementById('noteTitle');
   const elEditor = document.getElementById('editor');
-  if (elTitle) elTitle.addEventListener('input', scheduleSave);
+  if (elTitle) {
+    elTitle.addEventListener('input', scheduleSave);
+    elTitle.addEventListener('click', () => elTitle.select());
+  }
   if (elEditor) elEditor.addEventListener('input', scheduleSave);
-  if (elTitle) elTitle.addEventListener('click', () => elTitle.select());
 }
 
 export async function deleteCurrentNote() {
@@ -151,14 +176,15 @@ export function togglePin() {
   const id = activeNoteId.get();
   if (!id) return;
   const all = notesStore.get();
-  const note = all.find((n) => n.id === id);
-  if (!note) return;
-  note.pinned = !note.pinned;
-  note.updatedAtTs = now();
-  note.updatedAt = formatTime(note.updatedAtTs);
+  const idx = all.findIndex((n) => n.id === id);
+  if (idx === -1) return;
+  const note = all[idx];
+  const next = applyPatch(note, { pinned: !note.pinned.value });
+  if (next === note) return;
+  all[idx] = next;
   sortNotesInPlace(all);
   notesStore.set([...all]);
-  persist(note);
+  persist(next);
   document.dispatchEvent(new CustomEvent('lb:pin-toggled', { detail: { id } }));
 }
 
@@ -177,7 +203,6 @@ export async function deleteSelectedNotes(ids) {
   document.dispatchEvent(new CustomEvent('lb:batch-deleted', { detail: { ids } }));
 }
 
-// 對照（split）視圖
 export function openSplitView(noteId) {
   const panel = document.getElementById('splitPanel');
   if (noteId == null) {
@@ -186,8 +211,9 @@ export function openSplitView(noteId) {
   }
   const note = notesStore.get().find((n) => n.id === noteId);
   if (!note) return;
-  document.getElementById('splitTitle').textContent = note.title;
-  document.getElementById('splitEditor').value = note.content;
+  const view = noteView(note);
+  document.getElementById('splitTitle').textContent = view.title || '(無標題)';
+  document.getElementById('splitEditor').value = view.content;
   panel.classList.add('open');
 }
 
@@ -196,6 +222,9 @@ export function showEmptyState() {
   document.getElementById('emptyState').style.display = 'flex';
 }
 
-// 搜尋狀態（由 sidebar 同步過來）
 export function setSearchKeyword(v) { searchKeyword.set(v); }
 export function setSearchMode(v) { searchMode.set(v); }
+export function loadNoteFromView(id) { return loadNote(id); }
+
+// 給 history.js 用的時光機
+export { restoreFromHistory };

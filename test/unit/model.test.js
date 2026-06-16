@@ -1,39 +1,44 @@
 import { describe, it, expect } from 'vitest';
-import { createNote, normalizeNote, applyLocalEdit, mergeNoteByTimestamp } from '../../src/model/note.js';
+import {
+  createNote, normalizeNote, applyPatch, noteView,
+  pushHistory, restoreFromHistory,
+} from '../../src/model/note.js';
+import { getDeviceId } from '../../src/util/id.js';
 
 describe('createNote', () => {
-  it('產生預設空白筆記', () => {
+  it('產生 LWW 結構空白筆記', () => {
     const n = createNote();
     expect(n.id).toBeTypeOf('string');
-    expect(n.title).toBe('');
-    expect(n.content).toBe('');
-    expect(n.links).toEqual([]);
+    expect(n.title).toMatchObject({ value: '', rev: 1 });
+    expect(n.title.clock).toBeTypeOf('object');
+    expect(n.content.value).toBe('');
+    expect(n.links.value).toEqual([]);
+    expect(n.pinned.value).toBe(false);
     expect(n.history).toEqual([]);
-    expect(n.pinned).toBe(false);
-    expect(n.updatedAtTs).toBeGreaterThan(0);
   });
 
   it('接受部分欄位', () => {
     const n = createNote({ title: 'hi', pinned: true });
-    expect(n.title).toBe('hi');
-    expect(n.pinned).toBe(true);
+    expect(noteView(n).title).toBe('hi');
+    expect(noteView(n).pinned).toBe(true);
   });
 });
 
 describe('normalizeNote', () => {
-  it('從 v23 物件補上 timestamp 與 links', () => {
-    const raw = { id: 123, title: 'old', content: 'x', updatedAt: '2024-01-01 12:00:00', history: [] };
+  it('從 v23 物件升級到 LWW', () => {
+    const raw = { id: '123', title: 'old', content: 'x', updatedAt: '2024-01-01 12:00:00', history: [] };
     const n = normalizeNote(raw);
-    expect(n.id).toBe(123);
-    expect(n.title).toBe('old');
-    expect(n.updatedAtTs).toBeTypeOf('number');
-    expect(n.links).toEqual([]);
+    expect(n.id).toBe('123');
+    expect(noteView(n).title).toBe('old');
+    expect(n.title.rev).toBe(1);
+    expect(n.links.value).toEqual([]);
   });
 
-  it('缺 id 時補一個 uuid', () => {
-    const n = normalizeNote({ title: 'x' });
-    expect(n.id).toBeTypeOf('string');
-    expect(n.id.length).toBeGreaterThan(10);
+  it('已是 LWW 格式則原樣保留', () => {
+    const lww = createNote({ title: 'a' });
+    const out = normalizeNote(lww);
+    expect(out.title.value).toBe('a');
+    expect(out.title.rev).toBe(1);
   });
 
   it('回傳 null 對應非物件', () => {
@@ -42,48 +47,80 @@ describe('normalizeNote', () => {
   });
 });
 
-describe('applyLocalEdit', () => {
-  it('無變動回原物件', () => {
+describe('applyPatch', () => {
+  it('無變動回原 reference', () => {
     const n = createNote({ title: 'a', content: 'b' });
-    const next = applyLocalEdit(n, { title: 'a', content: 'b' });
-    expect(next).toBe(n); // 同 reference 表示無 dirty
+    const next = applyPatch(n, { title: 'a', content: 'b' });
+    expect(next).toBe(n);
   });
 
-  it('title 變動更新時間戳', () => {
+  it('title 變動 bump rev 與 clock', () => {
     const n = createNote({ title: 'a' });
-    const next = applyLocalEdit(n, { title: 'A' });
-    expect(next.title).toBe('A');
-    expect(next.updatedAtTs).toBeGreaterThanOrEqual(n.updatedAtTs);
+    const before = n.title.rev;
+    const next = applyPatch(n, { title: 'A' });
+    expect(next.title.value).toBe('A');
+    expect(next.title.rev).toBe(before + 1);
+    expect(next.title.clock[getDeviceId()]).toBeGreaterThan(0);
   });
 
-  it('content 變動更新時間戳', () => {
+  it('content 變動 bump rev', () => {
     const n = createNote({ content: 'a' });
-    const next = applyLocalEdit(n, { content: 'A' });
-    expect(next.content).toBe('A');
-    expect(next.updatedAtTs).toBeGreaterThanOrEqual(n.updatedAtTs);
+    const next = applyPatch(n, { content: 'A' });
+    expect(next.content.value).toBe('A');
+    expect(next.content.rev).toBe(2);
+  });
+
+  it('links 用 deep equal 判斷', () => {
+    const n = createNote({ links: [1, 2] });
+    const next = applyPatch(n, { links: [1, 2] });
+    expect(next).toBe(n);
+    const next2 = applyPatch(n, { links: [1, 2, 3] });
+    expect(next2.links.value).toEqual([1, 2, 3]);
+  });
+
+  it('pinned toggle', () => {
+    const n = createNote({ pinned: false });
+    const next = applyPatch(n, { pinned: true });
+    expect(next.pinned.value).toBe(true);
+    expect(next.pinned.rev).toBe(2);
   });
 });
 
-describe('mergeNoteByTimestamp', () => {
-  it('local 較新時回 local', () => {
-    const l = { id: 'a', updatedAtTs: 2000 };
-    const r = { id: 'a', updatedAtTs: 1000 };
-    expect(mergeNoteByTimestamp(l, r)).toBe(l);
+describe('pushHistory / restoreFromHistory', () => {
+  it('pushHistory 加到開頭，超過 20 截斷', () => {
+    let n = createNote();
+    for (let i = 0; i < 25; i++) {
+      n = pushHistory(n, { time: 't' + i, timestamp: i, content: 'c' + i });
+    }
+    expect(n.history).toHaveLength(20);
+    expect(n.history[0].content).toBe('c24');
   });
 
-  it('remote 較新時回 remote', () => {
-    const l = { id: 'a', updatedAtTs: 1000 };
-    const r = { id: 'a', updatedAtTs: 2000 };
-    expect(mergeNoteByTimestamp(l, r)).toBe(r);
+  it('restoreFromHistory 還原並把現有推入 history', () => {
+    let n = createNote({ content: 'v1' });
+    n = applyPatch(n, { content: 'v2' });
+    n = pushHistory(n, { time: 't', timestamp: 1, content: 'v1' });
+    // history 順序：[v1@t=1]，content 為 v2
+    const restored = restoreFromHistory(n, 0);
+    expect(restored.content.value).toBe('v1');
+    expect(restored.history[0].content).toBe('v2');
+  });
+});
+
+describe('noteView', () => {
+  it('攤平 LWW 結構', () => {
+    const n = createNote({ title: 't', content: 'c', pinned: true });
+    const v = noteView(n);
+    expect(v).toMatchObject({
+      id: n.id,
+      title: 't',
+      content: 'c',
+      pinned: true,
+      history: [],
+    });
   });
 
-  it('local 缺時回 remote', () => {
-    const r = { id: 'a', updatedAtTs: 1 };
-    expect(mergeNoteByTimestamp(null, r)).toBe(r);
-  });
-
-  it('remote 缺時回 local', () => {
-    const l = { id: 'a', updatedAtTs: 1 };
-    expect(mergeNoteByTimestamp(l, null)).toBe(l);
+  it('空 note 回空 view', () => {
+    expect(noteView(null)).toBeNull();
   });
 });

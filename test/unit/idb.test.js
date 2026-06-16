@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import 'fake-indexeddb/auto';
-import { getDB, STORES, getAllNotes, putNote, deleteNote, getMeta, setMeta, storageUsageRatio } from '../../src/core/idb.js';
+import { getDB, STORES, getAllNotes, putNote, deleteNote, getMeta, setMeta, storageUsageRatio, _resetForTest } from '../../src/core/idb.js';
 import { runMigration, clearLegacyIfExpired } from '../../src/core/migration.js';
 import { normalizeNote } from '../../src/model/note.js';
 
 // 重建 DB 的 helper：fake-indexeddb 的 deleteDatabase 在已開啟連線時會阻塞
 // 改用：清掉所有 store 的內容（每個測試隔離）
 async function resetDb() {
+  // 模組快取也要清掉，否則 openDB 會跳過 upgrade
+  _resetForTest();
   const db = await getDB();
   await db.clear(STORES.notes);
   await db.clear(STORES.meta);
@@ -48,7 +50,8 @@ describe('migration', () => {
     expect(r.migrated).toBe(2);
     const all = await getAllNotes();
     expect(all).toHaveLength(2);
-    expect(all.find((n) => n.id === 1).title).toBe('A');
+    const { noteView } = await import('../../src/model/note.js');
+    expect(noteView(all.find((n) => n.id === 1)).title).toBe('A');
   });
 
   it('重跑 migration 不重複', async () => {

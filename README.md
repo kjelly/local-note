@@ -34,7 +34,7 @@ test/                     # Vitest 單元測試
 ## Phase 進度
 
 - [x] **P1** 修 bug：escape 補強、innerHTML→DOM API、CSP、SW、localStorage→IndexedDB migration
-- [ ] P2 欄位級 LWW + 全新資料模型
+- [x] **P2** 欄位級 LWW + 全新資料模型（title/content/links/pinned 各自 LWW）
 - [ ] P3 拆模組（已部分完成）
 - [ ] P4 效能：反向索引、虛擬捲動
 - [ ] P5 同步強化（3-way merge / ETag / bg sync）

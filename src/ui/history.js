@@ -1,7 +1,8 @@
 // history.js — 時光機
 
 import { h, clear } from '../util/dom.js';
-import { notesStore, activeNoteId, scheduleSave } from './editor.js';
+import { notesStore, activeNoteId, scheduleSave, restoreFromHistory } from './editor.js';
+import { putNote } from '../core/idb.js';
 
 export function bindHistory() {
   const sel = document.getElementById('historySelect');
@@ -46,16 +47,18 @@ function closePreview() {
 function confirmRestore() {
   if (pendingRestoreIndex === -1) return;
   const all = notesStore.get();
-  const cur = all.find((n) => n.id === activeNoteId.get());
-  if (!cur) return;
-  const ed = document.getElementById('editor');
-  if (!cur.history) cur.history = [];
-  cur.history.unshift({ time: new Date().toLocaleString(), timestamp: Date.now(), content: cur.content });
-  ed.value = cur.history[pendingRestoreIndex].content;
+  const idx = all.findIndex((n) => n.id === activeNoteId.get());
+  if (idx === -1) return;
+  const cur = all[idx];
+  const next = restoreFromHistory(cur, pendingRestoreIndex);
+  if (next === cur) return;
+  all[idx] = next;
+  notesStore.set([...all]);
+  document.getElementById('editor').value = next.content.value;
+  putNote({ ...next, updatedAt: Date.now() });
   closePreview();
   scheduleSave();
 }
 
-// 提供給 HTML 內 inline button
 window.closePreview = closePreview;
 window.confirmRestore = confirmRestore;
