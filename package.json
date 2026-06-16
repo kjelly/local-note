@@ -1,0 +1,23 @@
+{
+  "name": "local-brain",
+  "version": "0.24.0",
+  "private": true,
+  "type": "module",
+  "description": "Local Brain v24 — 純前端、可同步、可離線的筆記 SPA",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "idb": "^8.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "vitest": "^2.0.0",
+    "fake-indexeddb": "^6.0.0",
+    "jsdom": "^25.0.0"
+  }
+}

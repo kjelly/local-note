@@ -1,0 +1,52 @@
+/* base.css — 共用變數與 reset */
+
+:root {
+  --sidebar-bg: #2c3e50;
+  --sidebar-text: #ecf0f1;
+  --active-item: #34495e;
+  --accent: #3498db;
+  --border-color: #ddd;
+  --sync-ok: #2ecc71;
+  --sync-warn: #f1c40f;
+  --sync-err: #e74c3c;
+  --link-tag-bg: #e1f5fe;
+  --link-tag-text: #0277bd;
+  --danger: #e74c3c;
+  --pin-color: #f1c40f;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  background: #fff;
+  font-size: 16px;
+}
+
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.synced { color: var(--sync-ok) !important; border-color: var(--sync-ok) !important; }
+.error { color: var(--sync-err) !important; border-color: var(--sync-err) !important; }
+.loading { color: var(--sync-warn) !important; border-color: var(--sync-warn) !important; }
+
+#main {
+  flex: 1;
+  display: flex;
+  position: relative;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+#overlayBackdrop {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 90;
+}

@@ -1,0 +1,75 @@
+/* sidebar.css — 側邊欄與列表 */
+
+#sidebar {
+  width: 280px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  flex-shrink: 0;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-header { padding: 15px; background: rgba(0,0,0,0.1); }
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+#addBtn {
+  background: var(--accent);
+  border: none;
+  color: white;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+}
+#batchActions { display: none; gap: 5px; flex: 1; justify-content: flex-end; }
+#deleteBatchBtn { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+#cancelBatchBtn { background: #7f8c8d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+
+.data-controls { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+.data-btn, #cloudBtn, #diskBtn, #gDriveBtn {
+  flex: 1; min-width: 50px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #ccc;
+  font-size: 0.8rem;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+
+.search-box { padding: 10px 15px; background: rgba(0,0,0,0.2); }
+.search-input { width: 100%; padding: 8px; border-radius: 4px; border: none; font-size: 0.95rem; outline: none; }
+.search-options { margin-top: 8px; display: flex; gap: 15px; font-size: 0.85rem; color: #bdc3c7; }
+
+#noteList { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
+.note-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex; align-items: center; gap: 10px;
+  user-select: none;
+}
+.note-item:hover { background: var(--active-item); }
+.note-item.active { background: var(--active-item); border-left: 5px solid var(--accent); }
+.batch-mode .note-item { background: #34495e; }
+.note-info { flex: 1; overflow: hidden; pointer-events: none; }
+.note-item .title { font-weight: bold; display: block; margin-bottom: 4px; color: #fff; font-size: 1rem; }
+.note-item .preview {
+  font-size: 0.8rem; opacity: 0.6;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: block;
+}
+.batch-checkbox { width: 20px; height: 20px; cursor: pointer; display: none; margin-right: 5px; }
+.batch-mode .batch-checkbox { display: block; }
+.split-btn {
+  opacity: 0.3; background: none; border: 1px solid #aaa; color: #fff;
+  border-radius: 4px; padding: 4px 8px; font-size: 0.8rem;
+  cursor: pointer; z-index: 2;
+}
+.note-item:hover .split-btn { opacity: 1; }
+.batch-mode .split-btn { display: none; }

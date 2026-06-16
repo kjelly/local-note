@@ -1,0 +1,20 @@
+/* responsive.css — 768px 以下手機版 */
+
+@media (max-width: 768px) {
+  #sidebar {
+    position: fixed;
+    left: -290px; top: 0; bottom: 0;
+    width: 280px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+  }
+  #sidebar.mobile-open { transform: translateX(290px); }
+  #mobileHeader { display: flex; }
+  #aiSidebar { width: 100%; right: -100%; }
+  #aiSidebar.open { right: 0; }
+  .link-search-dropdown { width: 250px; }
+  #splitPanel.open {
+    width: 100%;
+    position: absolute; top: 0; bottom: 0; right: 0;
+    z-index: 50;
+  }
+}

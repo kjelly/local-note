@@ -1,0 +1,101 @@
+/* editor.css — 編輯器、標題列、toolbar、split */
+
+#noteContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  transition: width 0.3s;
+}
+
+#mobileHeader {
+  display: none;
+  height: 50px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  align-items: center;
+  padding: 0 15px;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.hamburger-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #555; padding: 5px; }
+
+.title-bar { padding: 15px 20px 5px 20px; display: flex; align-items: center; }
+#noteTitle {
+  font-size: 1.3rem;
+  border: none; background: transparent;
+  flex: 1; font-weight: bold; color: #2c3e50;
+  outline: none; border-bottom: 2px solid transparent;
+  padding-bottom: 5px; border-radius: 0;
+}
+#noteTitle:focus { border-bottom: 2px solid var(--accent); }
+
+.links-container { padding: 5px 20px; display: flex; flex-direction: column; gap: 8px; background: #fff; border-bottom: 1px solid #f0f0f0; }
+.link-row { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #666; min-height: 35px; flex-wrap: wrap; }
+.link-label { font-weight: bold; width: 60px; flex-shrink: 0; }
+.tags-wrapper { flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.link-tag, .backlink-tag {
+  padding: 3px 8px; border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.8rem;
+  background: var(--link-tag-bg); color: var(--link-tag-text);
+}
+.backlink-tag { background: #f3e5f5; color: #7b1fa2; }
+.link-tag .remove-link { font-weight: bold; padding-left: 2px; }
+
+.add-link-wrapper { position: relative; }
+.add-link-btn { background: #eee; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #555; font-size: 0.85rem; }
+.link-search-dropdown {
+  position: absolute; top: 100%; left: 0; width: 220px;
+  background: white; border: 1px solid #ccc;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  z-index: 1000; max-height: 200px; overflow-y: auto;
+  display: none; margin-top: 5px; border-radius: 4px;
+}
+.link-search-input { width: 100%; padding: 8px; border: none; border-bottom: 1px solid #eee; outline: none; box-sizing: border-box; }
+.link-option { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f9f9f9; }
+.link-option:hover { background: #f0f0f0; }
+.link-option.selected { background-color: #d6eaf8; color: #000; }
+
+.toolbar {
+  padding: 5px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  display: flex; align-items: center; gap: 10px;
+  height: 50px; overflow-x: auto;
+}
+.toolbar-btn { background: white; border: 1px solid #ddd; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
+.toolbar-btn.delete { color: #e74c3c; border-color: #fadbd8; }
+.toolbar-btn.pinned { background: var(--pin-color); color: #333; border-color: #d4ac0d; font-weight: bold; }
+select.history-select { padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem; background: white; }
+
+#editor {
+  flex: 1;
+  padding: 20px;
+  font-size: 17px;
+  line-height: 1.6;
+  border: none; outline: none; resize: none;
+  color: #2c3e50; width: 100%; box-sizing: border-box;
+}
+
+#splitPanel {
+  width: 0; border-left: 1px solid #ccc;
+  background: #fdfdfd;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transition: width 0.3s ease;
+  position: relative;
+}
+#splitPanel.open { width: 45%; }
+.split-header { padding: 10px; background: #f1f1f1; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+.split-title { font-weight: bold; color: #555; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#splitEditor { flex: 1; padding: 20px; font-size: 15px; line-height: 1.6; border: none; resize: none; background: #fdfdfd; color: #444; }
+
+#emptyState {
+  display: none;
+  flex: 1; flex-direction: column;
+  align-items: center; justify-content: center;
+  color: #aaa; font-size: 1.1rem;
+  padding: 20px; text-align: center;
+}

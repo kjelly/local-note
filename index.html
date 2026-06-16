@@ -1,517 +1,182 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Local Brain v23</title>
-    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBzdHlsZT0iYmFja2dyb3VuZDojMmMzZTUwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzM0NDk1ZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iNDAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjQwIiByPSI1IiBmaWxsPSIjMzQ5OGRiIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI3MCIgcj0iNSIgZmlsbD0iIzM0OThkYiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48cGF0aCBkPSJNMzAgNDAgTDUwIDMwIEw3MCA0MCBMNTAgNzAgWiIgc3Ryb2tlPSIjZWNmMGYxIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz48L3N2Zz4=">
-    <meta name="theme-color" content="#2c3e50">
-    <link rel="manifest" id="my-manifest-placeholder">
-    
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Local Brain v24</title>
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBzdHlsZT0iYmFja2dyb3VuZDojMmMzZTUwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzM0NDk1ZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iNDAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjQwIiByPSI1IiBmaWxsPSIjMzQ5OGRiIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI3MCIgcj0iNSIgZmlsbD0iIzM0OThkYiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48cGF0aCBkPSJNMzAgNDAgTDUwIDMwIEw3MCA0MCBMNTAgNzAgWiIgc3Ryb2tlPSIjZWNmMGYxIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz48L3N2Zz4=">
+  <meta name="theme-color" content="#2c3e50">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com https://apis.google.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://www.googleapis.com https://accounts.google.com http://localhost:* http://127.0.0.1:*">
 
-    <style>
-        :root { 
-            --sidebar-bg: #2c3e50; --sidebar-text: #ecf0f1; --active-item: #34495e; 
-            --accent: #3498db; --border-color: #ddd;
-            --sync-ok: #2ecc71; --sync-warn: #f1c40f; --sync-err: #e74c3c;
-            --link-tag-bg: #e1f5fe; --link-tag-text: #0277bd;
-            --danger: #e74c3c; --pin-color: #f1c40f;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; display: flex; overflow: hidden; background: #fff; font-size: 16px; }
-        
-        #sidebar { width: 280px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); flex-shrink: 0; z-index: 100; transition: transform 0.3s ease; }
-        #main { flex: 1; display: flex; position: relative; min-width: 0; width: 100%; overflow: hidden; }
-        #noteContainer { flex: 1; display: flex; flex-direction: column; height: 100%; min-width: 0; transition: width 0.3s; }
-        #splitPanel { width: 0; border-left: 1px solid #ccc; background: #fdfdfd; display: flex; flex-direction: column; overflow: hidden; transition: width 0.3s ease; position: relative; }
-        #splitPanel.open { width: 45%; }
+  <link rel="stylesheet" href="/src/styles/base.css">
+  <link rel="stylesheet" href="/src/styles/sidebar.css">
+  <link rel="stylesheet" href="/src/styles/editor.css">
+  <link rel="stylesheet" href="/src/styles/modal.css">
+  <link rel="stylesheet" href="/src/styles/ai.css">
+  <link rel="stylesheet" href="/src/styles/responsive.css">
 
-        .sidebar-header { padding: 15px; background: rgba(0,0,0,0.1); }
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        
-        #addBtn { background: var(--accent); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
-        #batchActions { display: none; gap: 5px; flex: 1; justify-content: flex-end; }
-        #deleteBatchBtn { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-        #cancelBatchBtn { background: #7f8c8d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js"></script>
 
-        .data-controls { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
-        .data-btn, #cloudBtn, #diskBtn, #gDriveBtn { flex: 1; min-width: 50px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #ccc; font-size: 0.8rem; padding: 6px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; }
-        
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .synced { color: var(--sync-ok) !important; border-color: var(--sync-ok) !important; }
-        .error { color: var(--sync-err) !important; border-color: var(--sync-err) !important; }
-        .loading { color: var(--sync-warn) !important; border-color: var(--sync-warn) !important; }
-
-        .search-box { padding: 10px 15px; background: rgba(0,0,0,0.2); }
-        .search-input { width: 100%; padding: 8px; border-radius: 4px; border: none; font-size: 0.95rem; outline: none; }
-        .search-options { margin-top: 8px; display: flex; gap: 15px; font-size: 0.85rem; color: #bdc3c7; }
-
-        #noteList { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
-        .note-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; user-select: none; }
-        .note-item:hover { background: var(--active-item); }
-        .note-item.active { background: var(--active-item); border-left: 5px solid var(--accent); }
-        .batch-mode .note-item { background: #34495e; }
-        .note-info { flex: 1; overflow: hidden; pointer-events: none; }
-        .note-item .title { font-weight: bold; display: block; margin-bottom: 4px; color: #fff; font-size: 1rem; }
-        .note-item .preview { font-size: 0.8rem; opacity: 0.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-        .batch-checkbox { width: 20px; height: 20px; cursor: pointer; display: none; margin-right: 5px; } 
-        .batch-mode .batch-checkbox { display: block; }
-        .split-btn { opacity: 0.3; background: none; border: 1px solid #aaa; color: #fff; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer; z-index: 2; }
-        .note-item:hover .split-btn { opacity: 1; }
-        .batch-mode .split-btn { display: none; } 
-
-        #mobileHeader { display: none; height: 50px; background: #f8f9fa; border-bottom: 1px solid #ddd; align-items: center; padding: 0 15px; justify-content: space-between; flex-shrink: 0; }
-        .hamburger-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #555; padding: 5px; }
-
-        .title-bar { padding: 15px 20px 5px 20px; display: flex; align-items: center; }
-        #noteTitle { font-size: 1.3rem; border: none; background: transparent; flex: 1; font-weight: bold; color: #2c3e50; outline: none; border-bottom: 2px solid transparent; padding-bottom: 5px; border-radius: 0; }
-        #noteTitle:focus { border-bottom: 2px solid var(--accent); }
-
-        .links-container { padding: 5px 20px; display: flex; flex-direction: column; gap: 8px; background: #fff; border-bottom: 1px solid #f0f0f0; }
-        .link-row { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #666; min-height: 35px; flex-wrap: wrap; }
-        .link-label { font-weight: bold; width: 60px; flex-shrink: 0; }
-        .tags-wrapper { flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-        .link-tag, .backlink-tag { padding: 3px 8px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.8rem; background: var(--link-tag-bg); color: var(--link-tag-text); }
-        .backlink-tag { background: #f3e5f5; color: #7b1fa2; }
-        
-        .add-link-wrapper { position: relative; }
-        .add-link-btn { background: #eee; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #555; font-size: 0.85rem; }
-        .link-search-dropdown { position: absolute; top: 100%; left: 0; width: 220px; background: white; border: 1px solid #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 1000; max-height: 200px; overflow-y: auto; display: none; margin-top: 5px; border-radius: 4px; }
-        .link-search-input { width: 100%; padding: 8px; border: none; border-bottom: 1px solid #eee; outline: none; box-sizing: border-box; }
-        .link-option { padding: 8px 12px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #f9f9f9; }
-        .link-option:hover { background: #f0f0f0; }
-        .link-option.selected { background-color: #d6eaf8; color: #000; }
-
-        .toolbar { padding: 5px 20px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; height: 50px; overflow-x: auto; }
-        .toolbar-btn { background: white; border: 1px solid #ddd; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
-        .toolbar-btn.delete { color: #e74c3c; border-color: #fadbd8; }
-        .toolbar-btn.pinned { background: var(--pin-color); color: #333; border-color: #d4ac0d; font-weight: bold; }
-        select.history-select { padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem; background: white; }
-
-        #editor { flex: 1; padding: 20px; font-size: 17px; line-height: 1.6; border: none; outline: none; resize: none; color: #2c3e50; width: 100%; box-sizing: border-box; }
-        
-        .split-header { padding: 10px; background: #f1f1f1; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
-        .split-title { font-weight: bold; color: #555; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #splitEditor { flex: 1; padding: 20px; font-size: 15px; line-height: 1.6; border: none; resize: none; background: #fdfdfd; color: #444; }
-
-        #aiSidebar { width: 350px; background: #fdfdfd; border-left: 1px solid #ddd; display: flex; flex-direction: column; position: fixed; right: -360px; top: 0; bottom: 0; transition: right 0.3s ease; z-index: 200; box-shadow: -2px 0 10px rgba(0,0,0,0.1); }
-        #aiSidebar.open { right: 0; }
-        .ai-header { padding: 15px; background: #6c5ce7; color: white; display: flex; justify-content: space-between; align-items: center; }
-        .ai-chat-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .message { padding: 10px; border-radius: 8px; font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; background: #eef2f5; margin-bottom: 5px; }
-        .ai-input-area { padding: 10px; border-top: 1px solid #ddd; background: white; }
-
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; }
-        .modal-box { background: white; width: 90%; max-width: 500px; border-radius: 8px; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.3); overflow: hidden; max-height: 90vh; }
-        .modal-header { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .modal-body { padding: 20px; overflow-y: auto; }
-        .modal-footer { padding: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #fff; }
-        .form-group { margin-bottom: 10px; }
-        .form-group label { display: block; font-size: 0.85rem; color:#555; font-weight:bold; }
-        .form-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; margin-top: 5px; }
-
-        #emptyState { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: center; color: #aaa; font-size: 1.1rem; padding: 20px; text-align: center; }
-        #overlayBackdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; }
-
-        @media (max-width: 768px) {
-            #sidebar { position: fixed; left: -290px; top: 0; bottom: 0; width: 280px; box-shadow: 2px 0 10px rgba(0,0,0,0.2); }
-            #sidebar.mobile-open { transform: translateX(290px); }
-            #mobileHeader { display: flex; }
-            #aiSidebar { width: 100%; right: -100%; }
-            #aiSidebar.open { right: 0; }
-            .link-search-dropdown { width: 250px; }
-            #splitPanel.open { width: 100%; position: absolute; top: 0; bottom: 0; right: 0; z-index: 50; }
-        }
-    </style>
+  <link rel="manifest" id="my-manifest-placeholder">
 </head>
 <body>
 
 <div id="cloudModal" class="modal-overlay">
-    <div class="modal-box">
-        <div class="modal-header"><h3>雲端同步設定</h3><button onclick="toggleCloudModal(false)" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
-        <div class="modal-body">
-            <div style="display:flex; border-bottom:1px solid #ddd; margin-bottom:15px;">
-                <button onclick="switchTab('webdav')" id="tab-webdav" style="flex:1; padding:10px; background:none; border:none; border-bottom:2px solid #3498db; font-weight:bold;">WebDAV</button>
-                <button onclick="switchTab('gdrive')" id="tab-gdrive" style="flex:1; padding:10px; background:none; border:none; color:#aaa;">Google Drive</button>
-            </div>
+  <div class="modal-box">
+    <div class="modal-header"><h3>雲端同步設定</h3><button onclick="window.toggleCloudModal(false)" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
+    <div class="modal-body">
+      <div style="display:flex; border-bottom:1px solid #ddd; margin-bottom:15px;">
+        <button onclick="window.switchTab('webdav')" id="tab-webdav" style="flex:1; padding:10px; background:none; border:none; border-bottom:2px solid #3498db; font-weight:bold;">WebDAV</button>
+        <button onclick="window.switchTab('gdrive')" id="tab-gdrive" style="flex:1; padding:10px; background:none; border:none; color:#aaa;">Google Drive</button>
+      </div>
 
-            <div id="webdav-section">
-                <div class="form-group"><label>URL:</label><input type="text" id="davUrl" placeholder="https://nextcloud.../brain.json"></div>
-                <div class="form-group"><label>User:</label><input type="text" id="davUser"></div>
-                <div class="form-group"><label>Pass:</label><input type="password" id="davPass"></div>
-                <button class="toolbar-btn" onclick="testWebDAV()">測試 WebDAV</button>
-            </div>
+      <div id="webdav-section">
+        <div class="form-group"><label>URL:</label><input type="text" id="davUrl" placeholder="https://nextcloud.../brain.json"></div>
+        <div class="form-group"><label>User:</label><input type="text" id="davUser"></div>
+        <div class="form-group"><label>Pass:</label><input type="password" id="davPass"></div>
+        <button class="toolbar-btn" id="davTestBtn">測試 WebDAV</button>
+      </div>
 
-            <div id="gdrive-section" style="display:none;">
-                <div class="form-group"><label>Client ID:</label><input type="text" id="gClientId"></div>
-                <div class="form-group"><label>API Key:</label><input type="text" id="gApiKey"></div>
-                <p style="font-size:0.8rem; color:#666;">* 請在 Google Cloud Console 啟用 "Google Drive API"。</p>
-                <button id="gAuthBtn" class="toolbar-btn" style="background:#4285F4; color:white;" onclick="handleAuthClick()" disabled>連線 Google 帳號 (載入中...)</button>
-                <button id="gSignOutBtn" class="toolbar-btn" onclick="handleSignoutClick()" disabled>登出</button>
-                <div id="gDriveStatus" style="font-size:0.8rem; margin-top:5px; color:#e74c3c;"></div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <span id="davTestStatus" style="font-size:0.8rem;margin-right:auto;"></span>
-            <button class="toolbar-btn" style="background:#2ecc71;color:white;" onclick="saveCloudConfig()">儲存設定</button>
-        </div>
+      <div id="gdrive-section" style="display:none;">
+        <div class="form-group"><label>Client ID:</label><input type="text" id="gClientId"></div>
+        <div class="form-group"><label>API Key:</label><input type="text" id="gApiKey"></div>
+        <p style="font-size:0.8rem; color:#666;">* 請在 Google Cloud Console 啟用 "Google Drive API"。</p>
+        <button id="gAuthBtn" class="toolbar-btn" style="background:#4285F4; color:white;" disabled>連線 Google 帳號 (載入中...)</button>
+        <button id="gSignOutBtn" class="toolbar-btn" disabled>登出</button>
+        <div id="gDriveStatus" style="font-size:0.8rem; margin-top:5px; color:#e74c3c;"></div>
+      </div>
     </div>
+    <div class="modal-footer">
+      <span id="davTestStatus" style="font-size:0.8rem;margin-right:auto;"></span>
+      <button class="toolbar-btn" style="background:#2ecc71;color:white;" onclick="window.saveCloudConfig()">儲存設定</button>
+    </div>
+  </div>
 </div>
 
 <div id="previewModal" class="modal-overlay">
-    <div class="modal-box" style="max-width:600px;">
-        <div class="modal-header"><h3>歷史預覽</h3><button onclick="closePreview()" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
-        <div class="modal-body" style="background:#f9f9f9;font-family:monospace;white-space:pre-wrap;" id="previewContent"></div>
-        <div class="modal-footer">
-            <button class="toolbar-btn" onclick="closePreview()">取消</button>
-            <button class="toolbar-btn" style="background:#e74c3c;color:white;" onclick="confirmRestore()">還原</button>
-        </div>
+  <div class="modal-box" style="max-width:600px;">
+    <div class="modal-header"><h3>歷史預覽</h3><button onclick="window.closePreview()" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
+    <div class="modal-body" style="background:#f9f9f9;font-family:monospace;white-space:pre-wrap;" id="previewContent"></div>
+    <div class="modal-footer">
+      <button class="toolbar-btn" onclick="window.closePreview()">取消</button>
+      <button class="toolbar-btn" style="background:#e74c3c;color:white;" onclick="window.confirmRestore()">還原</button>
     </div>
+  </div>
 </div>
 
-<div id="overlayBackdrop" onclick="toggleSidebar(false)"></div>
+<div id="overlayBackdrop"></div>
 
 <div id="sidebar">
-    <div class="sidebar-header">
-        <div class="header-top">
-            <h2>Local Brain v23</h2>
-            <button onclick="toggleSidebar(false)" style="background:none;border:none;color:white;display:none;" id="closeSidebarBtn">✕</button>
-            <div id="normalActions" style="display:flex;gap:10px;align-items:center;">
-                <button onclick="toggleBatchMode(true)" style="background:none;border:1px solid #555;color:#ccc;border-radius:4px;padding:2px 8px;font-size:0.8rem;cursor:pointer;" title="整理模式">🗑️ 整理</button>
-                <button id="addBtn" title="新增筆記">+</button>
-            </div>
-            <div id="batchActions">
-                <button id="cancelBatchBtn" onclick="toggleBatchMode(false)">取消</button>
-                <button id="deleteBatchBtn" onclick="deleteSelectedNotes()">確認刪除</button>
-            </div>
-        </div>
-        
-        <button id="installAppBtn" style="display:none;width:100%;margin-top:10px;background:#27ae60;color:white;border:none;padding:8px;border-radius:4px;cursor:pointer;">📲 安裝 App</button>
+  <div class="sidebar-header">
+    <div class="header-top">
+      <h2>Local Brain v24</h2>
+      <button style="background:none;border:none;color:white;display:none;" id="closeSidebarBtn">✕</button>
+      <div id="normalActions" style="display:flex;gap:10px;align-items:center;">
+        <button id="batchBtn" style="background:none;border:1px solid #555;color:#ccc;border-radius:4px;padding:2px 8px;font-size:0.8rem;cursor:pointer;" title="整理模式">🗑️ 整理</button>
+        <button id="addBtn" title="新增筆記">+</button>
+      </div>
+      <div id="batchActions">
+        <button id="cancelBatchBtn">取消</button>
+        <button id="deleteBatchBtn">確認刪除</button>
+      </div>
+    </div>
 
-        <div class="data-controls" style="margin-top:10px;">
-            <button class="data-btn" onclick="exportData()">⬇ 備份</button>
-            <button class="data-btn" onclick="importDataTrigger()">⬆ 還原</button>
-        </div>
-        <div class="data-controls" style="margin-top:5px;">
-            <button id="diskBtn" onclick="initLocalFile()">💾 硬碟</button>
-            <button id="cloudBtn" onclick="toggleCloudModal(true)">☁️ 雲端</button>
-            <button id="gDriveBtn" onclick="syncGoogleDrive()">G</button>
-        </div>
+    <button id="installAppBtn" style="display:none;width:100%;margin-top:10px;background:#27ae60;color:white;border:none;padding:8px;border-radius:4px;cursor:pointer;">📲 安裝 App</button>
+
+    <div class="data-controls" style="margin-top:10px;">
+      <button class="data-btn" id="exportBtn">⬇ 備份</button>
+      <button class="data-btn" id="importBtn">⬆ 還原</button>
     </div>
-    <div class="search-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="搜尋 (Ctrl+P)..." oninput="renderList(getFilteredNotes())">
-        <div class="search-options">
-            <label><input type="radio" name="searchMode" value="AND" checked onchange="renderList(getFilteredNotes())"> AND</label>
-            <label><input type="radio" name="searchMode" value="OR" onchange="renderList(getFilteredNotes())"> OR</label>
-        </div>
+    <div class="data-controls" style="margin-top:5px;">
+      <button id="diskBtn">💾 硬碟</button>
+      <button id="cloudBtn">☁️ 雲端</button>
+      <button id="gDriveBtn">G</button>
     </div>
-    <ul id="noteList"></ul>
+  </div>
+  <div class="search-box">
+    <input type="text" id="searchInput" class="search-input" placeholder="搜尋 (Ctrl+P)...">
+    <div class="search-options">
+      <label><input type="radio" name="searchMode" value="AND" checked> AND</label>
+      <label><input type="radio" name="searchMode" value="OR"> OR</label>
+    </div>
+  </div>
+  <ul id="noteList"></ul>
 </div>
 
 <div id="main">
-    <div id="noteContainer" style="display:none;">
-        <div id="mobileHeader">
-            <button class="hamburger-btn" onclick="toggleSidebar(true)">☰</button>
-            <span style="font-weight:bold;color:#555;">Local Brain</span>
-            <button class="hamburger-btn" onclick="toggleAISidebar()">🤖</button>
-        </div>
-        <div class="title-bar">
-            <input type="text" id="noteTitle" placeholder="無標題" onclick="this.select()">
-        </div>
-        <div class="links-container">
-            <div class="link-row">
-                <span class="link-label">指向:</span>
-                <div class="tags-wrapper" id="outboundLinks"></div>
-                <div class="add-link-wrapper">
-                    <button class="add-link-btn" onclick="toggleLinkSearch()">+ 關聯 (Ctrl+L)</button>
-                    <div id="linkSearchDropdown" class="link-search-dropdown">
-                        <input type="text" id="linkSearchInput" class="link-search-input" placeholder="搜尋..." oninput="filterLinkOptions()">
-                        <div id="linkOptionsList"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="link-row">
-                <span class="link-label">來自:</span>
-                <div class="tags-wrapper" id="inboundLinks"></div>
-            </div>
-        </div>
-        <div class="toolbar">
-            <select id="historySelect" class="history-select"><option value="-1">時光機</option></select>
-            <button class="toolbar-btn delete" onclick="deleteCurrentNote()">刪除</button>
-            <div style="flex:1"></div>
-            <button id="pinBtn" class="toolbar-btn" onclick="togglePin()">📌 置頂</button>
-            <div style="width:5px"></div>
-            <button class="toolbar-btn" style="background:#6c5ce7;color:white;" onclick="toggleAISidebar()">🤖 AI</button>
-            <span id="status" style="font-size:0.75rem;color:#999;margin-left:5px;"></span>
-        </div>
-        <textarea id="editor" placeholder="在此輸入內容 (Ctrl+I)..."></textarea>
+  <div id="noteContainer" style="display:none;">
+    <div id="mobileHeader">
+      <button class="hamburger-btn" id="openSidebarBtn">☰</button>
+      <span style="font-weight:bold;color:#555;">Local Brain</span>
+      <button class="hamburger-btn" id="openAIBtn">🤖</button>
     </div>
+    <div class="title-bar">
+      <input type="text" id="noteTitle" placeholder="無標題">
+    </div>
+    <div class="links-container">
+      <div class="link-row">
+        <span class="link-label">指向:</span>
+        <div class="tags-wrapper" id="outboundLinks"></div>
+        <div class="add-link-wrapper">
+          <button class="add-link-btn" id="addLinkBtn">+ 關聯 (Ctrl+L)</button>
+          <div id="linkSearchDropdown" class="link-search-dropdown">
+            <input type="text" id="linkSearchInput" class="link-search-input" placeholder="搜尋...">
+            <div id="linkOptionsList"></div>
+          </div>
+        </div>
+      </div>
+      <div class="link-row">
+        <span class="link-label">來自:</span>
+        <div class="tags-wrapper" id="inboundLinks"></div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <select id="historySelect" class="history-select"><option value="-1">時光機</option></select>
+      <button class="toolbar-btn delete" id="deleteBtn">刪除</button>
+      <div style="flex:1"></div>
+      <button id="pinBtn" class="toolbar-btn">📌 置頂</button>
+      <div style="width:5px"></div>
+      <button class="toolbar-btn" id="aiBtn" style="background:#6c5ce7;color:white;">🤖 AI</button>
+      <span id="status" style="font-size:0.75rem;color:#999;margin-left:5px;"></span>
+    </div>
+    <textarea id="editor" placeholder="在此輸入內容 (Ctrl+I)..."></textarea>
+  </div>
 
-    <div id="splitPanel">
-        <div class="split-header">
-            <span class="split-title" id="splitTitle">對照筆記</span>
-            <button onclick="toggleSplitView(null)" style="border:none;background:none;font-weight:bold;cursor:pointer;">✕</button>
-        </div>
-        <textarea id="splitEditor" readonly></textarea>
+  <div id="splitPanel">
+    <div class="split-header">
+      <span class="split-title" id="splitTitle">對照筆記</span>
+      <button id="closeSplitBtn" style="border:none;background:none;font-weight:bold;cursor:pointer;">✕</button>
     </div>
+    <textarea id="splitEditor" readonly></textarea>
+  </div>
 
-    <div id="emptyState">
-        <p>👋 歡迎使用 Local Brain v23</p>
-        <p style="font-size:0.9rem; color:#888;">Fixes: Undefined Vars</p>
-        <button class="toolbar-btn" style="background:#6c5ce7;color:white;padding:10px 20px;" onclick="createNote()">+ 立即開始</button>
-    </div>
+  <div id="emptyState">
+    <p>👋 歡迎使用 Local Brain v24</p>
+    <p style="font-size:0.9rem; color:#888;">Phase 1: escape 補強 + IndexedDB 遷移</p>
+    <button class="toolbar-btn" id="emptyCreateBtn" style="background:#6c5ce7;color:white;padding:10px 20px;">+ 立即開始</button>
+  </div>
 </div>
 
 <div id="aiSidebar">
-    <div class="ai-header"><h3>Ollama</h3><button onclick="toggleAISidebar()" style="border:none;background:none;color:white;font-size:1.5rem;">&times;</button></div>
-    <div class="ai-settings">
-        <div class="setting-row"><label>Host:</label><input id="aiHost" value="http://localhost:11434"></div>
-        <div class="setting-row"><label>Model:</label><input id="aiModel" value="llama3.2"></div>
+  <div class="ai-header"><h3>Ollama</h3><button onclick="window.toggleAISidebar()" style="border:none;background:none;color:white;font-size:1.5rem;">&times;</button></div>
+  <div class="ai-settings">
+    <div class="setting-row"><label>Host:</label><input id="aiHost" value="http://localhost:11434"></div>
+    <div class="setting-row"><label>Model:</label><input id="aiModel" value="llama3.2"></div>
+  </div>
+  <div class="ai-chat-area" id="aiChat"><div class="message msg-ai">助手準備就緒。</div></div>
+  <div class="ai-input-area">
+    <button class="toolbar-btn" id="summarizeBtn" style="width:100%;margin-bottom:5px;background:#a29bfe;color:white;">📝 摘要</button>
+    <textarea id="aiPrompt" style="width:100%;height:60px;resize:none;" placeholder="輸入問題..."></textarea>
+    <div class="ai-actions">
+      <button id="clearChatBtn" style="background:none;border:none;color:#888;">清空</button>
+      <button id="sendBtn" class="toolbar-btn" style="background:#6c5ce7;color:white;">發送</button>
     </div>
-    <div class="ai-chat-area" id="aiChat"><div class="message msg-ai">助手準備就緒。</div></div>
-    <div class="ai-input-area">
-        <button class="toolbar-btn" style="width:100%;margin-bottom:5px;background:#a29bfe;color:white;" onclick="summarizeNote()">📝 摘要</button>
-        <textarea id="aiPrompt" style="width:100%;height:60px;resize:none;" placeholder="輸入問題..."></textarea>
-        <div class="ai-actions" style="margin-top:5px;display:flex;justify-content:space-between;">
-            <button onclick="clearChat()" style="background:none;border:none;color:#888;">清空</button>
-            <button id="sendBtn" class="toolbar-btn" style="background:#6c5ce7;color:white;" onclick="sendToAI()">發送</button>
-        </div>
-    </div>
+  </div>
 </div>
 
-<input type="file" id="fileInput" style="display: none;" onchange="importData(this)">
+<input type="file" id="fileInput" style="display: none;" accept="application/json">
 
-<script>
-    // --- Manifest & SW ---
-    const manifest={"name":"Local Brain","short_name":"LocalBrain","start_url":".","display":"standalone","background_color":"#2c3e50","theme_color":"#2c3e50","icons":[{"src":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBzdHlsZT0iYmFja2dyb3VuZDojMmMzZTUwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzM0NDk1ZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iNDAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjQwIiByPSI1IiBmaWxsPSIjMzQ5OGRiIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI3MCIgcj0iNSIgZmlsbD0iIzM0OThkYiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48cGF0aCBkPSJNMzAgNDAgTDUwIDMwIEw3MCA0MCBMNTAgNzAgWiIgc3Ryb2tlPSIjZWNmMGYxIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz48L3N2Zz4=","sizes":"192x192 512x512","type":"image/svg+xml"}]};
-    document.querySelector('#my-manifest-placeholder').href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type:'application/json'}));
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register(URL.createObjectURL(new Blob([`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));self.addEventListener('fetch',e=>{});`],{type:'application/javascript'})));
-
-    // --- Google Drive Global Vars ---
-    let tokenClient;
-    let gapiInited = false;
-    let gisInited = false;
-    let googleConfig = { clientId: '', apiKey: '' };
-    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-    const G_FILE_NAME = 'local_brain_data.json';
-
-    // --- App Variables ---
-    const DB_KEY = 'local_brain_db_v23'; 
-    const MAX_HISTORY = 20; const HISTORY_INTERVAL = 60 * 1000;
-    let notes = []; let activeNoteId = null; let saveTimeout; let pendingRestoreIndex = -1;
-    let webdavConfig = { url: '', user: '', pass: '' }; let isSyncing = false; let localFileHandle = null;
-    let isBatchMode = false; let linkSearchIndex = -1;
-
-    // --- DOM Refs (FIXED: Added missing refs) ---
-    const el = id => document.getElementById(id);
-    const elNoteList = el('noteList'), elNoteContainer = el('noteContainer'), elTitle = el('noteTitle'), elEditor = el('editor'), elEmptyState = el('emptyState'), elStatus = el('status'), elHistory = el('historySelect'), elOutbound = el('outboundLinks'), elInbound = el('inboundLinks'), elSearchInput = el('searchInput'), elCloudBtn = el('cloudBtn'), elDiskBtn = el('diskBtn'), elPinBtn = el('pinBtn'), elGDriveBtn = el('gDriveBtn');
-    const elNormalActions = el('normalActions'), elBatchActions = el('batchActions'), elSidebar = el('sidebar'), elSplitPanel = el('splitPanel'), elSplitTitle = el('splitTitle'), elSplitEditor = el('splitEditor'), elCloudModal = el('cloudModal'), elPreviewModal = el('previewModal'), elPreviewContent = el('previewContent'), elLinkDropdown = el('linkSearchDropdown'), elLinkSearchInput = el('linkSearchInput'), elLinkOptionsList = el('linkOptionsList');
-    const elAiHost = el('aiHost'), elAiModel = el('aiModel'), elAiChat = el('aiChat'), elAiPrompt = el('aiPrompt'), elSendBtn = el('sendBtn'), elAiSidebar = el('aiSidebar'), elOverlay = el('overlayBackdrop');
-    // FIXED: Added missing Dav Refs
-    const elDavUrl = el('davUrl'), elDavUser = el('davUser'), elDavPass = el('davPass'), elDavTestStatus = el('davTestStatus');
-    // FIXED: Added missing GDrive Refs
-    const elGClientId = el('gClientId'), elGApiKey = el('gApiKey'), elGDriveStatus = el('gDriveStatus'), elGAuthBtn = el('gAuthBtn'), elGSignOutBtn = el('gSignOutBtn');
-
-    function init() {
-        const raw = localStorage.getItem(DB_KEY);
-        if (raw) { try { notes = JSON.parse(raw); } catch(e) { notes = []; } }
-        else { const old = localStorage.getItem('local_brain_db_v22'); if(old) { try{ notes = JSON.parse(old); saveToStorage(); }catch(e){} } }
-        notes.forEach(n => { if (!n.links) n.links = []; }); renderList(notes); if (notes.length > 0) loadNote(notes[0].id); else showEmptyState();
-
-        if(localStorage.getItem('lb_host')) elAiHost.value = localStorage.getItem('lb_host');
-        if(localStorage.getItem('lb_model')) elAiModel.value = localStorage.getItem('lb_model');
-        const davCfg = localStorage.getItem('lb_webdav');
-        if (davCfg) { try { webdavConfig = JSON.parse(davCfg); elDavUrl.value = webdavConfig.url; elDavUser.value = webdavConfig.user; elDavPass.value = webdavConfig.pass; if(webdavConfig.url) syncDown(); } catch(e) {} }
-        
-        const gCfg = localStorage.getItem('lb_gdrive');
-        if (gCfg) { try { googleConfig = JSON.parse(gCfg); elGClientId.value = googleConfig.clientId; elGApiKey.value = googleConfig.apiKey; } catch(e){} }
-        
-        gapi.load('client', initializeGapiClient);
-        window.addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; return ''; });
-        
-        let deferredPrompt; const installBtn = document.getElementById('installAppBtn');
-        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'block'; });
-        installBtn.addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') installBtn.style.display = 'none'; deferredPrompt = null; });
-    }
-
-    // --- Google Drive Logic ---
-    async function initializeGapiClient() {
-        if(!googleConfig.apiKey) return;
-        try {
-            await gapi.client.init({ apiKey: googleConfig.apiKey, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
-            await gapi.client.load('drive', 'v3');
-            gapiInited = true;
-            maybeEnableGButtons();
-        } catch(err) {
-            console.error("GAPI Init Error", err);
-            elGDriveStatus.innerText = 'GAPI Init Fail. Check Console.';
-        }
-    }
-
-    function maybeEnableGButtons() {
-        if (gapiInited && gisInited) {
-            elGAuthBtn.disabled = false;
-            elGSignOutBtn.disabled = false;
-            elGAuthBtn.innerText = '連線 Google 帳號';
-            elGDriveStatus.innerText = '準備就緒';
-        }
-    }
-
-    window.onload = function() {
-        if(window.google) {
-            setTimeout(() => {
-                if(googleConfig.clientId) {
-                    try {
-                        tokenClient = google.accounts.oauth2.initTokenClient({
-                            client_id: googleConfig.clientId,
-                            scope: SCOPES,
-                            callback: '', 
-                        });
-                        gisInited = true;
-                        maybeEnableGButtons();
-                    } catch(e) { elGDriveStatus.innerText = 'GIS Error: ' + e.message; }
-                }
-            }, 1000);
-        }
-    }
-
-    function handleAuthClick() {
-        if(!googleConfig.clientId) return alert("Please set Client ID");
-        if(!gapiInited || !gapi.client) return alert("Google API not ready.");
-        
-        tokenClient.callback = async (resp) => {
-            if (resp.error !== undefined) { throw (resp); }
-            elGDriveStatus.innerText = '已登入';
-            await syncGoogleDrive();
-        };
-        if (gapi.client.getToken() === null) tokenClient.requestAccessToken({prompt: 'consent'});
-        else tokenClient.requestAccessToken({prompt: ''});
-    }
-
-    function handleSignoutClick() {
-        if(gapi.client && gapi.client.getToken() !== null) {
-            google.accounts.oauth2.revoke(gapi.client.getToken().access_token);
-            gapi.client.setToken('');
-            elGDriveStatus.innerText = '已登出';
-        }
-    }
-
-    async function syncGoogleDrive() {
-        if (!gapiInited || !gapi.client || !gapi.client.drive) { updateCloudBtn('error', 'API未就緒'); return; }
-        updateCloudBtn('loading', 'G同步...');
-        try {
-            const q = `name = '${G_FILE_NAME}' and trashed = false`;
-            const response = await gapi.client.drive.files.list({ 'pageSize': 10, 'fields': 'files(id, name)', 'q': q });
-            const files = response.result.files;
-            
-            if (files && files.length > 0) {
-                const fileId = files[0].id;
-                const fileContent = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
-                const cloudNotes = fileContent.result;
-                if (Array.isArray(cloudNotes)) mergeNotes(cloudNotes);
-                const body = JSON.stringify(notes);
-                await gapi.client.request({ path: '/upload/drive/v3/files/' + fileId, method: 'PATCH', params: { uploadType: 'media' }, body: body });
-            } else {
-                const boundary = '-------314159265358979323846';
-                const delimiter = "\r\n--" + boundary + "\r\n";
-                const close_delim = "\r\n--" + boundary + "--";
-                const contentType = 'application/json';
-                const metadata = {'name': G_FILE_NAME, 'mimeType': contentType};
-                const multipartRequestBody = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) + delimiter + 'Content-Type: ' + contentType + '\r\n\r\n' + JSON.stringify(notes) + close_delim;
-                await gapi.client.request({ 'path': '/upload/drive/v3/files', 'method': 'POST', 'params': {'uploadType': 'multipart'}, 'headers': {'Content-Type': 'multipart/related; boundary="' + boundary + '"'}, 'body': multipartRequestBody });
-            }
-            updateCloudBtn('synced', 'G完成');
-        } catch (err) { console.error(err); updateCloudBtn('error', 'G失敗'); elGDriveStatus.innerText = 'Error: ' + (err.result?.error?.message || err.message); }
-    }
-
-    // --- Shortcuts ---
-    document.addEventListener('keydown', (e) => {
-        const cmd = e.ctrlKey || e.metaKey;
-        if (elLinkDropdown.style.display === 'block') {
-            if (cmd && e.key === 'j') { e.preventDefault(); navigateLinkDropdown(1); return; }
-            if (cmd && e.key === 'k') { e.preventDefault(); navigateLinkDropdown(-1); return; }
-            if (e.key === 'Enter') {
-                e.preventDefault(); const selected = elLinkOptionsList.children[linkSearchIndex];
-                if (selected) selected.click(); else if(elLinkOptionsList.children.length > 0) elLinkOptionsList.children[0].click(); return;
-            }
-        }
-        if (cmd && e.key === 'p') { e.preventDefault(); elSearchInput.focus(); return; }
-        if (cmd && e.key === 'j') { e.preventDefault(); navigateList(1); return; }
-        if (cmd && e.key === 'k') { e.preventDefault(); navigateList(-1); return; }
-        if (cmd && e.key === 'o') { e.preventDefault(); elTitle.focus(); elTitle.select(); return; }
-        if (cmd && e.key === 'i') { e.preventDefault(); elEditor.focus(); return; }
-        if (cmd && e.key === 'l') { e.preventDefault(); toggleLinkSearch(); return; }
-    });
-    elSearchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const f = getFilteredNotes(); if (f.length === 0 && elSearchInput.value.trim()) createNote(); } });
-
-    // --- Helper Functions ---
-    function navigateList(dir) { const visibleNotes = getFilteredNotes(); if (visibleNotes.length===0) return; const currentIndex = visibleNotes.findIndex(n => n.id === activeNoteId); let nextIndex = currentIndex + dir; if (nextIndex < 0) nextIndex = 0; if (nextIndex >= visibleNotes.length) nextIndex = visibleNotes.length - 1; if (nextIndex !== currentIndex || activeNoteId === null) { loadNote(visibleNotes[nextIndex].id); const listItem = document.getElementById(`note-item-${visibleNotes[nextIndex].id}`); if(listItem) listItem.scrollIntoView({block: 'nearest'}); } }
-    function navigateLinkDropdown(dir) { const options = elLinkOptionsList.children; if (options.length === 0) return; if (linkSearchIndex >= 0 && linkSearchIndex < options.length) options[linkSearchIndex].classList.remove('selected'); linkSearchIndex += dir; if (linkSearchIndex < 0) linkSearchIndex = 0; if (linkSearchIndex >= options.length) linkSearchIndex = options.length - 1; options[linkSearchIndex].classList.add('selected'); options[linkSearchIndex].scrollIntoView({block: 'nearest'}); }
-    function createNote() { const now = new Date(); const searchTerm = elSearchInput.value.trim(); const title = searchTerm ? searchTerm : `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; const newNote = { id: Date.now(), title: title, content: "", updatedAt: now.toLocaleString(), history: [], links: [], pinned: false }; notes.unshift(newNote); sortNotes(); saveToStorage(); elSearchInput.value = ''; renderList(notes); loadNote(newNote.id); if(window.innerWidth <= 768) toggleSidebar(false); }
-    function loadNote(id) { activeNoteId = id; const note = notes.find(n => n.id === id); if (!note) return; elTitle.value = note.title; elEditor.value = note.content; updatePinUI(note); elNoteContainer.style.display = 'flex'; elEmptyState.style.display = 'none'; updateHistoryUI(note); renderLinksSection(note); renderList(elSearchInput.value ? getFilteredNotes() : notes); elLinkDropdown.style.display = 'none'; if(window.innerWidth <= 768) toggleSidebar(false); }
-    function saveCurrentState(force = false) { if (!activeNoteId) return; const note = notes.find(n => n.id === activeNoteId); const newTitle = elTitle.value; const newContent = elEditor.value; if (!force && note.title === newTitle && note.content === newContent) return; const now = Date.now(); const lastHist = note.history[0]; if (newContent !== note.content) { if (((now - (lastHist?.timestamp||0)) >= HISTORY_INTERVAL) || !lastHist) { note.history.unshift({ time: new Date().toLocaleString(), timestamp: now, content: note.content }); if (note.history.length > MAX_HISTORY) note.history = note.history.slice(0, MAX_HISTORY); } } note.title = newTitle; note.content = newContent; note.updatedAt = new Date().toLocaleString(); sortNotes(); saveToStorage(); if(elSearchInput.value) renderList(getFilteredNotes()); else renderList(notes); updateHistoryUI(note); elStatus.innerText = '已儲存'; setTimeout(() => elStatus.innerText = '', 1500); if(webdavConfig.url) { clearTimeout(saveTimeout); saveTimeout = setTimeout(syncUp, 2000); } if(googleConfig.apiKey) { clearTimeout(saveTimeout); saveTimeout = setTimeout(syncGoogleDrive, 3000); } if(localFileHandle) saveToDisk(); }
-    function saveToStorage() { localStorage.setItem(DB_KEY, JSON.stringify(notes)); }
-    function toggleSidebar(show) { if (show) { elSidebar.classList.add('mobile-open'); elOverlay.style.display = 'block'; } else { elSidebar.classList.remove('mobile-open'); elOverlay.style.display = 'none'; } }
-    function togglePin() { if (!activeNoteId) return; const note = notes.find(n => n.id === activeNoteId); if (note) { note.pinned = !note.pinned; updatePinUI(note); saveCurrentState(true); } }
-    function updatePinUI(note) { if (note.pinned) { elPinBtn.classList.add('pinned'); elPinBtn.innerText = "📌 已置頂"; } else { elPinBtn.classList.remove('pinned'); elPinBtn.innerText = "📌 置頂"; } }
-    function sortNotes() { notes.sort((a, b) => { if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1; return new Date(b.updatedAt) - new Date(a.updatedAt); }); }
-    function mergeNotes(remoteNotes) { let changes = 0; remoteNotes.forEach(rNote => { const localIdx = notes.findIndex(n => n.id === rNote.id); if (localIdx === -1) { notes.push(rNote); changes++; } else { const lDate = new Date(notes[localIdx].updatedAt).getTime(); const rDate = new Date(rNote.updatedAt).getTime(); if (rDate > lDate) { notes[localIdx] = rNote; changes++; } } }); sortNotes(); if(changes > 0) { saveToStorage(); renderList(getFilteredNotes()); if(activeNoteId) loadNote(activeNoteId); } }
-    function renderList(data) { elNoteList.innerHTML = ''; if (data.length === 0) { elNoteList.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">無筆記</div>'; return; } data.forEach(n => { const li = document.createElement('li'); li.className = 'note-item' + (n.id === activeNoteId ? ' active' : ''); li.id = `note-item-${n.id}`; li.onclick = (e) => { if (e.target.tagName === 'BUTTON' || e.target.classList.contains('split-btn')) return; if (isBatchMode) { if (e.target.tagName === 'INPUT') return; const cb = li.querySelector('.batch-checkbox'); if(cb) cb.checked = !cb.checked; } else { loadNote(n.id); } }; let html = ''; if (isBatchMode) html += `<input type="checkbox" class="batch-checkbox" value="${n.id}">`; let pinIcon = n.pinned ? '<span style="color:#f1c40f;margin-right:5px;">📌</span>' : ''; html += `<div class="note-info"><span class="title">${pinIcon}${escapeHtml(n.title)}</span><span class="preview">${escapeHtml(n.content.slice(0,40).replace(/\n/g,' '))}</span></div>`; if (!isBatchMode) html += `<button class="split-btn" onclick="toggleSplitView(${n.id});" title="對照">👀</button>`; li.innerHTML = html; elNoteList.appendChild(li); }); }
-    function getFilteredNotes() { const kw = elSearchInput.value.trim().toLowerCase(); if (!kw) return notes; const mode = document.querySelector('input[name="searchMode"]:checked').value; const keys = kw.split(/\s+/).filter(k=>k); return notes.filter(n => { const txt = (n.title+n.content).toLowerCase(); return mode === 'AND' ? keys.every(k=>txt.includes(k)) : keys.some(k=>txt.includes(k)); }); }
-    function toggleBatchMode(active) { isBatchMode = active; if (active) { elSidebar.classList.add('batch-mode'); elNormalActions.style.display = 'none'; elBatchActions.style.display = 'flex'; } else { elSidebar.classList.remove('batch-mode'); elNormalActions.style.display = 'flex'; elBatchActions.style.display = 'none'; } renderList(getFilteredNotes()); }
-    function deleteSelectedNotes() { const checkboxes = document.querySelectorAll('.batch-checkbox:checked'); if (checkboxes.length === 0) return alert("未選取"); if (confirm(`刪除 ${checkboxes.length} 筆？`)) { const idsToDelete = Array.from(checkboxes).map(cb => parseInt(cb.value)); notes = notes.filter(n => !idsToDelete.includes(n.id)); if (idsToDelete.includes(activeNoteId)) { activeNoteId = null; elNoteContainer.style.display = 'none'; elEmptyState.style.display = 'flex'; } saveToStorage(); toggleBatchMode(false); if (notes.length > 0 && !activeNoteId) loadNote(notes[0].id); syncUp(); if(localFileHandle) saveToDisk(); } }
-    
-    // UI Helpers
-    window.switchTab = function(tab) { if(tab === 'webdav') { document.getElementById('webdav-section').style.display = 'block'; document.getElementById('gdrive-section').style.display = 'none'; document.getElementById('tab-webdav').style.borderBottom = '2px solid #3498db'; document.getElementById('tab-gdrive').style.borderBottom = 'none'; } else { document.getElementById('webdav-section').style.display = 'none'; document.getElementById('gdrive-section').style.display = 'block'; document.getElementById('tab-gdrive').style.borderBottom = '2px solid #3498db'; document.getElementById('tab-webdav').style.borderBottom = 'none'; } }
-    window.toggleCloudModal = function(show) { elCloudModal.style.display = show ? 'flex' : 'none'; elDavTestStatus.innerText = ''; }
-    window.saveCloudConfig = function() { webdavConfig = { url: elDavUrl.value.trim(), user: elDavUser.value.trim(), pass: elDavPass.value.trim() }; localStorage.setItem('lb_webdav', JSON.stringify(webdavConfig)); googleConfig = { clientId: elGClientId.value.trim(), apiKey: elGApiKey.value.trim() }; localStorage.setItem('lb_gdrive', JSON.stringify(googleConfig)); toggleCloudModal(false); if(webdavConfig.url) syncDown(); if(googleConfig.apiKey) initializeGapiClient(); }
-    function escapeHtml(t) { return t ? t.replace(/&/g,"&amp;").replace(/</g,"&lt;") : ''; }
-    function showEmptyState() { elNoteContainer.style.display = 'none'; elEmptyState.style.display = 'flex'; }
-    function updateCloudBtn(state, text) { elCloudBtn.className = ''; elCloudBtn.classList.add(state); elCloudBtn.innerText = (state === 'synced' ? '☁️ ' : state === 'loading' ? '🔄 ' : '⚠️ ') + text; }
-    
-    // WebDAV
-    function getAuthHeader() { return webdavConfig.user ? { 'Authorization': 'Basic ' + btoa(webdavConfig.user + ':' + webdavConfig.pass) } : {}; }
-    window.testWebDAV = async function() { elDavTestStatus.innerText = '連線中...'; try { const res = await fetch(elDavUrl.value, { method: 'HEAD', headers: getAuthHeader() }); if (res.ok || res.status===404) { elDavTestStatus.innerText = '成功'; elDavTestStatus.style.color='green'; } else throw new Error(res.status); } catch (e) { elDavTestStatus.innerText = '失敗: ' + e.message; elDavTestStatus.style.color='red'; } }
-    async function syncDown() { if (!webdavConfig.url || isSyncing) return; updateCloudBtn('loading', '同步...'); isSyncing = true; try { const res = await fetch(webdavConfig.url, { method: 'GET', headers: { ...getAuthHeader(), 'Cache-Control': 'no-cache' } }); if (res.ok) { const cloudNotes = await res.json(); mergeNotes(cloudNotes); updateCloudBtn('synced', '雲端'); } else if (res.status === 404) await syncUp(); } catch (e) { updateCloudBtn('error', '錯誤'); } finally { isSyncing = false; } }
-    async function syncUp() { if (!webdavConfig.url) return; updateCloudBtn('loading', '上傳...'); try { await fetch(webdavConfig.url, { method: 'PUT', headers: { ...getAuthHeader(), 'Content-Type': 'application/json' }, body: JSON.stringify(notes) }); updateCloudBtn('synced', '雲端'); } catch (e) { updateCloudBtn('error', '失敗'); } }
-
-    function updateHistoryUI(note) { elHistory.innerHTML = '<option value="-1">時光機</option>'; if(!note.history) return; note.history.forEach((h, i) => { const opt = document.createElement('option'); opt.value = i; opt.innerText = `${h.time}`; elHistory.appendChild(opt); }); }
-    elHistory.addEventListener('change', (e) => { const idx = e.target.value; if (idx != -1) openPreview(idx); e.target.value = -1; });
-    function openPreview(idx) { const note = notes.find(n => n.id === activeNoteId); pendingRestoreIndex = idx; elPreviewContent.innerText = note.history[idx].content; elPreviewModal.style.display = 'flex'; }
-    window.closePreview = function() { elPreviewModal.style.display = 'none'; pendingRestoreIndex = -1; }
-    window.confirmRestore = function() { if (pendingRestoreIndex === -1) return; const note = notes.find(n => n.id === activeNoteId); note.history.unshift({ time: new Date().toLocaleString(), timestamp: Date.now(), content: note.content }); elEditor.value = note.history[pendingRestoreIndex].content; saveCurrentState(true); closePreview(); }
-    window.toggleLinkSearch = function() { const v = elLinkDropdown.style.display==='block'; elLinkDropdown.style.display=v?'none':'block'; if(!v){elLinkSearchInput.value='';elLinkSearchInput.focus();filterLinkOptions();linkSearchIndex=-1;} }
-    window.filterLinkOptions = function() { const kw = elLinkSearchInput.value.toLowerCase(); const curr = notes.find(n => n.id === activeNoteId); elLinkOptionsList.innerHTML = ''; const cands = notes.filter(n => n.id !== activeNoteId && (!curr.links || !curr.links.includes(n.id)) && (n.title.toLowerCase().includes(kw) || n.content.toLowerCase().includes(kw))); linkSearchIndex=-1; if(cands.length===0) { elLinkOptionsList.innerHTML = '<div style="padding:10px; color:#999;">無</div>'; return; } cands.slice(0,10).forEach(n => { const d = document.createElement('div'); d.className = 'link-option'; d.innerText = n.title; d.onclick = () => addLink(n.id); elLinkOptionsList.appendChild(d); }); }
-    window.addLink = function(tid) { const n = notes.find(n => n.id === activeNoteId); if (!n.links) n.links = []; n.links.push(tid); saveCurrentState(true); loadNote(activeNoteId); }
-    window.removeLink = function(tid) { const n = notes.find(n => n.id === activeNoteId); n.links = n.links.filter(id => id !== tid); saveCurrentState(true); loadNote(activeNoteId); }
-    function renderLinksSection(note) { elOutbound.innerHTML = ''; elInbound.innerHTML = ''; if (note.links && note.links.length > 0) note.links.forEach(lid => { const t = notes.find(n => n.id === lid); if (t) { const tag = document.createElement('span'); tag.className = 'link-tag'; tag.innerHTML = `<span onclick="loadNote(${lid})">${escapeHtml(t.title)}</span><span class="remove-link" onclick="removeLink(${lid})">&times;</span>`; elOutbound.appendChild(tag); } }); else elOutbound.innerHTML = '<span style="color:#ccc; font-size:0.8rem;">無</span>'; const bl = notes.filter(n => n.links && n.links.includes(note.id)); if (bl.length > 0) bl.forEach(bn => { const tag = document.createElement('span'); tag.className = 'backlink-tag'; tag.innerText = "← " + bn.title; tag.onclick = () => loadNote(bn.id); elInbound.appendChild(tag); }); else elInbound.innerHTML = '<span style="color:#ccc; font-size:0.8rem;">無</span>'; }
-    window.deleteCurrentNote = function() { if(confirm('刪除？')) { notes = notes.filter(n => n.id !== activeNoteId); saveToStorage(); activeNoteId = null; renderList(getFilteredNotes()); if(notes.length > 0) loadNote(notes[0].id); else showEmptyState(); syncUp(); if(localFileHandle) saveToDisk(); } }
-    window.toggleSplitView = function(noteId) { if (noteId === null) { elSplitPanel.classList.remove('open'); return; } const note = notes.find(n => n.id === noteId); if (note) { elSplitTitle.innerText = note.title; elSplitEditor.value = note.content; elSplitPanel.classList.add('open'); if(window.innerWidth <= 768) toggleSidebar(false); } }
-    window.initLocalFile = async function() { if (!window.showOpenFilePicker) { alert("請使用 Chrome/Edge"); return; } try { const [fileHandle] = await window.showOpenFilePicker({ types: [{ description: 'JSON Files', accept: {'application/json': ['.json']} }], multiple: false }); localFileHandle = fileHandle; const file = await localFileHandle.getFile(); const text = await file.text(); if (text) { try { const diskNotes = JSON.parse(text); mergeNotes(diskNotes); alert(`已連結並合併 ${diskNotes.length} 筆資料`); } catch(err) { if(!confirm("格式錯誤，覆蓋？")) return; } } await saveToDisk(); updateDiskBtn('synced', '已連結'); } catch (e) { if(e.name !== 'AbortError') alert("連結失敗: " + e.message); } }
-    async function saveToDisk() { if (!localFileHandle) return; try { updateDiskBtn('loading', '寫入...'); const writable = await localFileHandle.createWritable(); await writable.write(JSON.stringify(notes, null, 2)); await writable.close(); updateDiskBtn('synced', '硬碟'); } catch (e) { updateDiskBtn('error', '失敗'); } }
-    function updateDiskBtn(state, text) { elDiskBtn.className = ''; elDiskBtn.classList.add(state); elDiskBtn.innerText = (state === 'synced' ? '💾 ' : state === 'loading' ? '⏳ ' : '⚠️ ') + text; }
-    
-    // AI
-    window.toggleAISidebar = function() { elAiSidebar.classList.toggle('open'); }
-    window.summarizeNote = function() { if(!activeNoteId) return; sendToAI(`Summarize this in Traditional Chinese:\n${elEditor.value}`); }
-    window.clearChat = function() { elAiChat.innerHTML = ''; }
-    window.sendToAI = async function(customPrompt) { const prompt = customPrompt || elAiPrompt.value; if(!prompt) return; const host = elAiHost.value.replace(/\/$/, ''); const model = elAiModel.value; localStorage.setItem('lb_host', host); localStorage.setItem('lb_model', model); if(!customPrompt) { appendMsg('user', prompt); elAiPrompt.value = ''; } elSendBtn.disabled = true; const msgDiv = appendMsg('ai', 'Thinking...'); try { const res = await fetch(`${host}/api/generate`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({model, prompt, stream: true}) }); if(!res.ok) throw new Error('Error'); const reader = res.body.getReader(); const decoder = new TextDecoder(); let full = ''; msgDiv.innerText = ''; while(true) { const {done, value} = await reader.read(); if(done) break; const lines = decoder.decode(value, {stream:true}).split('\n'); for(const line of lines) { if(!line.trim()) continue; try { const j = JSON.parse(line); if(j.response) { full += j.response; msgDiv.innerText = full; elAiChat.scrollTop = elAiChat.scrollHeight; } } catch(e){} } } const btn = document.createElement('button'); btn.innerText = '📋 插入'; btn.className = 'toolbar-btn'; btn.style.background='#6c5ce7'; btn.style.color='white'; btn.style.marginTop='5px'; btn.onclick = () => { const start = elEditor.selectionStart; elEditor.value = elEditor.value.slice(0,start) + full + elEditor.value.slice(start); saveCurrentState(); if(window.innerWidth <= 768) toggleAISidebar(); }; msgDiv.appendChild(btn); } catch(e) { msgDiv.innerText = 'Error: ' + e.message; } finally { elSendBtn.disabled = false; } }
-    function appendMsg(role, text) { const d = document.createElement('div'); d.className = `message msg-${role}`; d.innerText = text; elAiChat.appendChild(d); elAiChat.scrollTop = elAiChat.scrollHeight; return d; }
-    window.exportData = function() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(notes,null,2)], {type:'application/json'})); a.download = `brain_v23_${new Date().toISOString().split('T')[0]}.json`; a.click(); }
-    window.importDataTrigger = function() { document.getElementById('fileInput').click(); }
-    window.importData = function(inp) { const r = new FileReader(); r.onload = e => { if(confirm('覆蓋資料？')) { notes = JSON.parse(e.target.result); saveToStorage(); init(); syncUp(); if(localFileHandle) saveToDisk(); } }; r.readAsText(inp.files[0]); inp.value = ''; }
-
-    // Init
-    document.getElementById('addBtn').addEventListener('click', createNote);
-    elAiPrompt.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendToAI(); } });
-    document.addEventListener('click', e => { if (!e.target.closest('.add-link-wrapper')) elLinkDropdown.style.display = 'none'; });
-    const debounceSave = () => { clearTimeout(saveTimeout); saveTimeout = setTimeout(saveCurrentState, 800); };
-    elTitle.addEventListener('input', debounceSave); elEditor.addEventListener('input', debounceSave);
-
-    init();
-</script>
+<script type="module" src="/src/main.js"></script>
 </body>
 </html>
