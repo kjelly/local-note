@@ -3,13 +3,18 @@
 import { h, clear } from '../util/dom.js';
 import { notesStore, activeNoteId, scheduleSave, restoreFromHistory } from './editor.js';
 import { putNote } from '../core/idb.js';
+import { trapFocus, focusFirst, onEscape, setAria } from '../core/a11y.js';
+
+let unbindTrap = null;
+let unbindEsc = null;
+let lastFocus = null;
 
 export function bindHistory() {
   const sel = document.getElementById('historySelect');
   if (!sel) return;
   sel.addEventListener('change', (e) => {
     const idx = e.target.value;
-    if (idx != -1) openPreview(parseInt(idx, 10));
+    if (idx !== -1) openPreview(parseInt(idx, 10));
     e.target.value = '-1';
   });
   document.addEventListener('lb:note-loaded', () => updateHistoryUI());
@@ -34,14 +39,28 @@ function openPreview(idx) {
   const cur = notesStore.get().find((n) => n.id === activeNoteId.get());
   if (!cur || !cur.history[idx]) return;
   pendingRestoreIndex = idx;
+  const overlay = document.getElementById('previewModal');
+  const box = overlay.querySelector('.modal-box');
   const content = document.getElementById('previewContent');
   content.textContent = cur.history[idx].content;
-  document.getElementById('previewModal').style.display = 'flex';
+  lastFocus = document.activeElement;
+  overlay.style.display = 'flex';
+  setAria(overlay, { 'role': 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'previewModalTitle' });
+  focusFirst(box || overlay);
+  unbindTrap = trapFocus(box || overlay);
+  unbindEsc = onEscape(overlay, closePreview);
 }
 
 function closePreview() {
-  document.getElementById('previewModal').style.display = 'none';
+  const overlay = document.getElementById('previewModal');
+  overlay.style.display = 'none';
   pendingRestoreIndex = -1;
+  if (unbindTrap) { unbindTrap(); unbindTrap = null; }
+  if (unbindEsc) { unbindEsc(); unbindEsc = null; }
+  if (lastFocus && typeof lastFocus.focus === 'function') {
+    lastFocus.focus();
+    lastFocus = null;
+  }
 }
 
 function confirmRestore() {

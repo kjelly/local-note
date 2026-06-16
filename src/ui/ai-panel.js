@@ -13,7 +13,7 @@ export async function bindAIPanel() {
   document.getElementById('aiModel').value = cfg.model;
 
   aiPrompt.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendToAI(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.sendToAI(); }
   });
 }
 
@@ -27,7 +27,7 @@ window.clearChat = function () {
 window.summarizeNote = function () {
   if (!activeNoteId.get()) return;
   const ed = document.getElementById('editor');
-  sendToAI(`Summarize this in Traditional Chinese:\n${ed.value}`);
+  window.sendToAI(`Summarize this in Traditional Chinese:\n${ed.value}`);
 };
 
 window.sendToAI = async function (customPrompt) {

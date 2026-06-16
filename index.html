@@ -23,8 +23,8 @@
 <body>
 
 <div id="cloudModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-header"><h3>雲端同步設定</h3><button onclick="window.toggleCloudModal(false)" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
+  <div class="modal-box" id="cloudModalBox">
+    <div class="modal-header"><h3 id="cloudModalTitle">雲端同步設定</h3><button onclick="window.toggleCloudModal(false)" aria-label="關閉" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
     <div class="modal-body">
       <div style="display:flex; border-bottom:1px solid #ddd; margin-bottom:15px;">
         <button onclick="window.switchTab('webdav')" id="tab-webdav" style="flex:1; padding:10px; background:none; border:none; border-bottom:2px solid #3498db; font-weight:bold;">WebDAV</button>
@@ -55,8 +55,8 @@
 </div>
 
 <div id="previewModal" class="modal-overlay">
-  <div class="modal-box" style="max-width:600px;">
-    <div class="modal-header"><h3>歷史預覽</h3><button onclick="window.closePreview()" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
+  <div class="modal-box" id="previewModalBox" style="max-width:600px;">
+    <div class="modal-header"><h3 id="previewModalTitle">歷史預覽</h3><button onclick="window.closePreview()" aria-label="關閉" style="border:none;background:none;font-size:1.5rem;">&times;</button></div>
     <div class="modal-body" style="background:#f9f9f9;font-family:monospace;white-space:pre-wrap;" id="previewContent"></div>
     <div class="modal-footer">
       <button class="toolbar-btn" onclick="window.closePreview()">取消</button>
@@ -71,37 +71,37 @@
   <div class="sidebar-header">
     <div class="header-top">
       <h2>Local Brain v24</h2>
-      <button style="background:none;border:none;color:white;display:none;" id="closeSidebarBtn">✕</button>
+      <button onclick="window.toggleSidebar(false)" aria-label="關閉側邊欄" style="background:none;border:none;color:white;display:none;" id="closeSidebarBtn">✕</button>
       <div id="normalActions" style="display:flex;gap:10px;align-items:center;">
-        <button id="batchBtn" style="background:none;border:1px solid #555;color:#ccc;border-radius:4px;padding:2px 8px;font-size:0.8rem;cursor:pointer;" title="整理模式">🗑️ 整理</button>
-        <button id="addBtn" title="新增筆記">+</button>
+        <button id="batchBtn" aria-label="進入整理模式" style="background:none;border:1px solid #555;color:#ccc;border-radius:4px;padding:2px 8px;font-size:0.8rem;cursor:pointer;" title="整理模式">🗑️ 整理</button>
+        <button id="addBtn" aria-label="新增筆記" title="新增筆記">+</button>
       </div>
       <div id="batchActions">
-        <button id="cancelBatchBtn">取消</button>
-        <button id="deleteBatchBtn">確認刪除</button>
+        <button id="cancelBatchBtn" aria-label="取消批次">取消</button>
+        <button id="deleteBatchBtn" aria-label="確認刪除選取">確認刪除</button>
       </div>
     </div>
 
-    <button id="installAppBtn" style="display:none;width:100%;margin-top:10px;background:#27ae60;color:white;border:none;padding:8px;border-radius:4px;cursor:pointer;">📲 安裝 App</button>
+    <button id="installAppBtn" aria-label="安裝 App" style="display:none;width:100%;margin-top:10px;background:#27ae60;color:white;border:none;padding:8px;border-radius:4px;cursor:pointer;">📲 安裝 App</button>
 
     <div class="data-controls" style="margin-top:10px;">
-      <button class="data-btn" id="exportBtn">⬇ 備份</button>
-      <button class="data-btn" id="importBtn">⬆ 還原</button>
+      <button class="data-btn" id="exportBtn" aria-label="備份資料">⬇ 備份</button>
+      <button class="data-btn" id="importBtn" aria-label="還原資料">⬆ 還原</button>
     </div>
     <div class="data-controls" style="margin-top:5px;">
-      <button id="diskBtn">💾 硬碟</button>
-      <button id="cloudBtn">☁️ 雲端</button>
-      <button id="gDriveBtn">G</button>
+      <button id="diskBtn" aria-label="連結本機檔">💾 硬碟</button>
+      <button id="cloudBtn" aria-label="開啟雲端設定">☁️ 雲端</button>
+      <button id="gDriveBtn" aria-label="Google Drive 同步">G</button>
     </div>
   </div>
   <div class="search-box">
-    <input type="text" id="searchInput" class="search-input" placeholder="搜尋 (Ctrl+P)...">
+    <input type="text" id="searchInput" class="search-input" placeholder="搜尋 (Ctrl+P)..." aria-label="搜尋筆記">
     <div class="search-options">
       <label><input type="radio" name="searchMode" value="AND" checked> AND</label>
       <label><input type="radio" name="searchMode" value="OR"> OR</label>
     </div>
   </div>
-  <ul id="noteList"></ul>
+  <ul id="noteList" aria-label="筆記列表" role="list"></ul>
 </div>
 
 <div id="main">
@@ -112,7 +112,7 @@
       <button class="hamburger-btn" id="openAIBtn">🤖</button>
     </div>
     <div class="title-bar">
-      <input type="text" id="noteTitle" placeholder="無標題">
+      <input type="text" id="noteTitle" placeholder="無標題" aria-label="筆記標題">
     </div>
     <div class="links-container">
       <div class="link-row">
@@ -132,20 +132,20 @@
       </div>
     </div>
     <div class="toolbar">
-      <select id="historySelect" class="history-select"><option value="-1">時光機</option></select>
-      <button class="toolbar-btn delete" id="deleteBtn">刪除</button>
+      <select id="historySelect" class="history-select" aria-label="時光機歷史"><option value="-1">時光機</option></select>
+      <button class="toolbar-btn delete" id="deleteBtn" aria-label="刪除當前筆記">刪除</button>
       <div style="flex:1"></div>
-      <button id="editorModeBtn" class="toolbar-btn" title="切換編輯/預覽">👁️ 預覽</button>
-      <button id="insertFileBtn" class="toolbar-btn" title="插入圖片或附件">📎 插入</button>
+      <button id="editorModeBtn" class="toolbar-btn" aria-label="切換編輯或預覽" title="切換編輯/預覽">👁️ 預覽</button>
+      <button id="insertFileBtn" class="toolbar-btn" aria-label="插入附件" title="插入圖片或附件">📎 插入</button>
       <input type="file" id="fileInputMarkdown" style="display:none" accept="image/*,.pdf,.txt,.md">
       <div style="width:5px"></div>
-      <button id="pinBtn" class="toolbar-btn">📌 置頂</button>
+      <button id="pinBtn" class="toolbar-btn" aria-label="置頂筆記">📌 置頂</button>
       <div style="width:5px"></div>
-      <button class="toolbar-btn" id="aiBtn" style="background:#6c5ce7;color:white;">🤖 AI</button>
-      <span id="status" style="font-size:0.75rem;color:#999;margin-left:5px;"></span>
+      <button class="toolbar-btn" id="aiBtn" aria-label="開啟 AI 助手" style="background:#6c5ce7;color:white;">🤖 AI</button>
+      <span id="status" role="status" aria-live="polite" style="font-size:0.75rem;color:#999;margin-left:5px;"></span>
     </div>
-    <textarea id="editor" placeholder="在此輸入內容 (Ctrl+I)... 支援 Markdown 預覽與拖入附件"></textarea>
-    <div id="previewArea" style="display:none;"></div>
+    <textarea id="editor" placeholder="在此輸入內容 (Ctrl+I)... 支援 Markdown 預覽與拖入附件" aria-label="筆記內容"></textarea>
+    <div id="previewArea" style="display:none;" aria-label="Markdown 預覽"></div>
   </div>
 
   <div id="splitPanel">
@@ -163,8 +163,8 @@
   </div>
 </div>
 
-<div id="aiSidebar">
-  <div class="ai-header"><h3>Ollama</h3><button onclick="window.toggleAISidebar()" style="border:none;background:none;color:white;font-size:1.5rem;">&times;</button></div>
+<div id="aiSidebar" role="complementary" aria-label="AI 助手">
+  <div class="ai-header"><h3>Ollama</h3><button onclick="window.toggleAISidebar()" aria-label="關閉 AI 助手" style="border:none;background:none;color:white;font-size:1.5rem;">&times;</button></div>
   <div class="ai-settings">
     <div class="setting-row"><label>Host:</label><input id="aiHost" value="http://localhost:11434"></div>
     <div class="setting-row"><label>Model:</label><input id="aiModel" value="llama3.2"></div>

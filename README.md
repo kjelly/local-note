@@ -39,4 +39,14 @@ test/                     # Vitest 單元測試
 - [x] **P4** 虛擬捲動（固定列高 + overscan）+ render patch
 - [x] **P5** 同步強化：3-way merge + ETag/If-Match + 背景同步佇列（指數退避）
 - [x] **P6** 附件（IndexedDB blob）+ Markdown 預覽（marked + DOMPurify）
-- [ ] P7 無障礙、安全、工程化
+- [x] **P7** 無障礙（focus trap / aria）+ 安全（Web Crypto）+ 工程化（ESLint / CI / perf）
+
+## 指令
+
+```bash
+npm run dev       # 開發伺服器
+npm run build     # 產出靜態檔
+npm test          # 跑單元測試（144 個）
+npm run lint      # ESLint 檢查
+npm run perf      # 1000 筆冷啟/搜尋效能 smoke test
+```

@@ -1,7 +1,13 @@
-// ui/modal.js — 雲端設定 modal（Phase 3：改用 IndexedDB meta 取代 localStorage）
+// ui/modal.js — 雲端設定 modal
+// Phase 7：focus trap、Esc 關閉、aria-modal/role
 
 import { getConfig, setConfig } from '../core/config.js';
 import { webdavTestHandler } from '../sync/webdav.js';
+import { trapFocus, focusFirst, onEscape, setAria } from '../core/a11y.js';
+
+let unbindTrap = null;
+let unbindEsc = null;
+let lastFocus = null;
 
 export async function bindCloudModal() {
   const dav = (await getConfig('webdav')) || {};
@@ -28,8 +34,26 @@ window.switchTab = function (tab) {
 };
 
 window.toggleCloudModal = function (show) {
-  document.getElementById('cloudModal').style.display = show ? 'flex' : 'none';
-  document.getElementById('davTestStatus').innerText = '';
+  const overlay = document.getElementById('cloudModal');
+  const box = overlay.querySelector('.modal-box');
+  if (show) {
+    lastFocus = document.activeElement;
+    overlay.style.display = 'flex';
+    document.getElementById('davTestStatus').innerText = '';
+    setAria(overlay, { 'role': 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'cloudModalTitle' });
+    if (box) box.id = box.id || 'cloudModalBox';
+    focusFirst(box || overlay);
+    unbindTrap = trapFocus(box || overlay);
+    unbindEsc = onEscape(overlay, () => window.toggleCloudModal(false));
+  } else {
+    overlay.style.display = 'none';
+    if (unbindTrap) { unbindTrap(); unbindTrap = null; }
+    if (unbindEsc) { unbindEsc(); unbindEsc = null; }
+    if (lastFocus && typeof lastFocus.focus === 'function') {
+      lastFocus.focus();
+      lastFocus = null;
+    }
+  }
 };
 
 window.saveCloudConfig = async function () {

@@ -14,4 +14,12 @@ if (typeof URL.createObjectURL !== 'function') {
   };
 }
 
+// jsdom 沒實作 crypto.getRandomValues；Node 自帶 webcrypto 可用
+if (typeof globalThis.crypto === 'undefined' || typeof globalThis.crypto.getRandomValues !== 'function') {
+  // Node 22+ 內建 webcrypto
+  if (typeof globalThis.crypto === 'undefined') {
+    globalThis.crypto = (await import('node:crypto')).webcrypto;
+  }
+}
+
 export {};
