@@ -179,9 +179,9 @@ function cssEsc(s) {
 function renderItem(n) {
   const title = n.title?.value || '(無標題)';
   const preview = (n.content?.value || '').slice(0, 40).replace(/\n/g, ' ');
-  const li = h('li', {
+  const li = h('div', {
     class: 'note-item' + (n.id === currentActiveId ? ' active' : ''),
-    dataset: { id: n.id },
+    dataset: { id: n.id, role: 'listitem' },
     style: `min-height:${ITEM_HEIGHT}px;`,
   });
   const info = h('div', { class: 'note-info' });

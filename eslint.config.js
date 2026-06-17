@@ -24,6 +24,7 @@ export default [
         Event: 'readonly',
         CustomEvent: 'readonly',
         KeyboardEvent: 'readonly',
+        MouseEvent: 'readonly',
         MutationObserver: 'readonly',
         IntersectionObserver: 'readonly',
         requestAnimationFrame: 'readonly',
