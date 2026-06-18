@@ -46,10 +46,13 @@ test/                     # Vitest 單元測試
 ```bash
 npm run dev       # 開發伺服器
 npm run build     # 產出靜態檔到 dist/
-npm test          # 跑單元測試（144 個）
+npm test          # 跑單元 + UI 測試（146 個）
 npm run lint      # ESLint 檢查
 npm run perf      # 1000 筆冷啟/搜尋效能 smoke test
+node scripts/test-content.mjs  # 用 Playwright 跑真實瀏覽器測試部署
 ```
+
+部署到 https://kjelly.github.io/local-note/ 後若功能異常（特別是 SW cache 還在舊版），請於 DevTools → Application → Service Workers 點 **Unregister**，再強制重整（Ctrl+Shift+R）。
 
 ## 部署到 GitHub Pages
 
