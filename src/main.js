@@ -36,8 +36,7 @@ import { webdavTestHandler } from './sync/webdav.js';
 async function boot() {
   console.log('[lb] booting v24...');
 
-  // 1. 註冊 PWA manifest（data URL）與 service worker
-  registerManifest();
+  // 1. 註冊 service worker（manifest 由 index.html 內 <link rel="manifest"> 處理）
   registerSW();
 
   // 2. 跑 migration
@@ -240,25 +239,6 @@ async function importData(input) {
     alert('匯入失敗：' + e.message);
   }
   input.value = '';
-}
-
-function registerManifest() {
-  const manifest = {
-    name: 'Local Brain',
-    short_name: 'LocalBrain',
-    start_url: '.',
-    display: 'standalone',
-    background_color: '#2c3e50',
-    theme_color: '#2c3e50',
-    icons: [{
-      src: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBzdHlsZT0iYmFja2dyb3VuZDojMmMzZTUwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzM0NDk1ZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iNDAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjQwIiByPSI1IiBmaWxsPSIjMzQ5OGRiIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI3MCIgcj0iNSIgZmlsbD0iIzM0OThkYiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMzAiIHI9IjUiIGZpbGw9IiMzNDk4ZGIiLz48cGF0aCBkPSJNMzAgNDAgTDUwIDMwIEw3MCA0MCBMNTAgNzAgWiIgc3Ryb2tlPSIjZWNmMGYxIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz48L3N2Zz4=',
-      sizes: '192x192 512x512',
-      type: 'image/svg+xml',
-    }],
-  };
-  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-  const ph = document.getElementById('my-manifest-placeholder');
-  if (ph) ph.href = URL.createObjectURL(blob);
 }
 
 function registerSW() {
