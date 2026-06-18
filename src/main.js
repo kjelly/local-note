@@ -98,10 +98,15 @@ async function boot() {
   reconcile().catch((e) => console.warn('reconcile failed', e));
   await initGapi().catch((e) => console.warn('gapi init skipped', e));
 
-  // 10. 背景同步訊息
+  // 10. 監聽 SW 訊息
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', (e) => {
       if (e.data?.type === 'lb:sync-trigger') reconcile().catch(() => {});
+      // SW 啟動新版本後通知 clients：自動重新整理一次
+      if (e.data?.type === 'lb:sw-updated') {
+        console.log('[lb] SW 更新完成，重新整理頁面');
+        setTimeout(() => location.reload(), 300);
+      }
     });
   }
   registerBackgroundSync();
