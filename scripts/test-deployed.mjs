@@ -59,6 +59,26 @@ await page.evaluate(() => {
       activeAtTime: active?.dataset.id,
     });
   }, true); // capture phase，看每次 click 時 active 是誰
+
+  // 用 MutationObserver 觀察 .active class 變化
+  window.__lb_muts = [];
+  const obs = new MutationObserver((muts) => {
+    for (const m of muts) {
+      if (m.type === 'attributes' && m.attributeName === 'class') {
+        const el = m.target;
+        if (el.classList.contains('note-item')) {
+          window.__lb_muts.push({
+            id: el.dataset.id,
+            hasActive: el.classList.contains('active'),
+          });
+        }
+      }
+    }
+  });
+  document.querySelectorAll('.note-item').forEach((el) => {
+    obs.observe(el, { attributes: true, attributeFilter: ['class'] });
+  });
+  window.__lb_obs = obs;
 });
 
 // Dump #noteList 結構 + vl-items 細節
@@ -94,15 +114,50 @@ const beforeActive = await page.evaluate(() => document.querySelector('.note-ite
 console.log('active before:', beforeActive);
 
 // 點第二個：用 .note-item[data-id] 確保選到 li，不是 split-btn
+await page.evaluate(() => {
+  window.__lb_poll = [];
+  let last = '';
+  const interval = setInterval(() => {
+    const a = document.querySelector('.note-item.active');
+    const cur = a?.dataset.id || null;
+    if (cur !== last) {
+      window.__lb_poll.push({ time: Date.now(), active: cur });
+      last = cur;
+    }
+  }, 30);
+  window.__lb_stop_poll = () => clearInterval(interval);
+});
+
 await page.locator(`.note-item[data-id="${secondId}"]`).first().click();
-await page.waitForTimeout(300);
+await page.waitForTimeout(500);
+await page.evaluate(() => window.__lb_stop_poll?.());
+const poll1 = await page.evaluate(() => window.__lb_poll || []);
+console.log('\n--- poll during/after click second ---');
+poll1.forEach((p) => console.log(JSON.stringify(p)));
 const afterSecond = await page.evaluate(() => document.querySelector('.note-item.active')?.dataset.id);
 const titleAfterSecond = await page.locator('#noteTitle').inputValue();
 console.log('after click second → active:', afterSecond, 'title:', titleAfterSecond);
 
 // 點第一個
+await page.evaluate(() => {
+  window.__lb_poll2 = [];
+  let last = '';
+  const interval = setInterval(() => {
+    const a = document.querySelector('.note-item.active');
+    const cur = a?.dataset.id || null;
+    if (cur !== last) {
+      window.__lb_poll2.push({ time: Date.now(), active: cur });
+      last = cur;
+    }
+  }, 30);
+  window.__lb_stop_poll2 = () => clearInterval(interval);
+});
 await page.locator(`.note-item[data-id="${firstId}"]`).first().click();
-await page.waitForTimeout(300);
+await page.waitForTimeout(500);
+await page.evaluate(() => window.__lb_stop_poll2?.());
+const poll2 = await page.evaluate(() => window.__lb_poll2 || []);
+console.log('\n--- poll during/after click first ---');
+poll2.forEach((p) => console.log(JSON.stringify(p)));
 const afterFirst = await page.evaluate(() => document.querySelector('.note-item.active')?.dataset.id);
 const titleAfterFirst = await page.locator('#noteTitle').inputValue();
 console.log('after click first → active:', afterFirst, 'title:', titleAfterFirst);
@@ -114,6 +169,10 @@ trace.forEach((t) => console.log(JSON.stringify(t)));
 const changes = await page.evaluate(() => window.__lb_active_changes || []);
 console.log('\n--- active changes around clicks ---');
 changes.forEach((c) => console.log(JSON.stringify(c)));
+
+const muts = await page.evaluate(() => window.__lb_muts || []);
+console.log('\n--- note-item class mutations ---');
+muts.forEach((m) => console.log(JSON.stringify(m)));
 
 const switched = afterSecond === secondId && afterFirst === firstId;
 console.log('\n=== RESULT:', switched ? '✅ click switches active note' : '❌ click did NOT switch', '===');

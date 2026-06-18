@@ -110,10 +110,24 @@ export function renderSidebarList(notes, activeId) {
   }
   // 第一次 render 或 items 總數變動 → 重新建立
   if (lastRange.end - lastRange.start === 0 || currentNotes.length === 0) {
+    syncActiveClass();
     rebuildAll();
     return;
   }
+  syncActiveClass();
   patchVisible();
+}
+
+// 只同步 .active class（active 變動但捲動範圍不變時呼叫）
+function syncActiveClass() {
+  if (!itemsLayer) return;
+  const items = itemsLayer.querySelectorAll('.note-item');
+  for (const el of items) {
+    const wantActive = el.dataset.id === currentActiveId;
+    if (el.classList.contains('active') !== wantActive) {
+      el.classList.toggle('active', wantActive);
+    }
+  }
 }
 
 function rebuildAll() {
