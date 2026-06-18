@@ -81,6 +81,8 @@ async function boot() {
     renderSidebarList(getFilteredNotes(), activeNoteId.get());
   });
   activeNoteId.subscribe((id) => {
+    // 切換 active 也要重畫 sidebar（更新 .active class 與 noteTitle 等）
+    renderSidebarList(getFilteredNotes(), id);
     if (id) {
       document.getElementById('noteContainer').style.display = 'flex';
       document.getElementById('emptyState').style.display = 'none';
