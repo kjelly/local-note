@@ -7,7 +7,9 @@
 //       * 其他：網路優先，失敗時回退快取
 //   - sync (Phase 5): 背景同步事件 → 通知 clients 觸發 reconcile
 
-const CACHE_NAME = 'local-brain-v24-shell-v1';
+// CACHE_NAME 每次 deploy 必須 bump（v1 → v2 …）
+// bump 後 activate 會把舊 v1 cache 清掉，使用者下次啟動就拿到新版
+const CACHE_NAME = 'local-brain-v24-shell-v2';
 const SHELL = [
   './',
   './index.html',
