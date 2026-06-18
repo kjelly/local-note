@@ -114,6 +114,7 @@ async function boot() {
   });
 
   console.log('[lb] boot 完成');
+  window.__lb_booted = true;
 }
 
 function bindUI() {
