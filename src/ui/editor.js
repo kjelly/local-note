@@ -90,18 +90,28 @@ export async function createNote(presetTitle = '') {
 }
 
 export function loadNote(id) {
+  if (!id) {
+    console.warn('[lb] loadNote: empty id');
+    return;
+  }
   activeNoteId.set(id);
   const note = notesStore.get().find((n) => n.id === id);
-  if (!note) return;
+  if (!note) {
+    console.warn('[lb] loadNote: note not found for id', id, 'available ids:', notesStore.get().map((n) => n.id));
+    return;
+  }
   const view = noteView(note);
   const elTitle = document.getElementById('noteTitle');
   const elEditor = document.getElementById('editor');
+  const prevTitle = elTitle?.value;
+  const prevContent = elEditor?.value;
   if (elTitle) elTitle.value = view.title;
   if (elEditor) elEditor.value = view.content;
   document.getElementById('noteContainer').style.display = 'flex';
   document.getElementById('emptyState').style.display = 'none';
   resetPreview();
   renderPreview();
+  console.log('[lb] loadNote', id, '→', JSON.stringify({ title: view.title, contentLen: (view.content || '').length, prevTitle, prevContentLen: (prevContent || '').length }));
   document.dispatchEvent(new CustomEvent('lb:note-loaded', { detail: { id } }));
 }
 

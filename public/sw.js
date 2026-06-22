@@ -9,7 +9,7 @@
 
 // 每次 deploy bump；activate 內會刪除所有其他 cache。
 // 即使 bump 漏了，網路優先策略仍會讓使用者拿到新版。
-const CACHE_NAME = 'local-brain-v24-shell-v4';
+const CACHE_NAME = 'local-brain-v24-shell-v5';
 const SHELL = [
   './',
   './index.html',
@@ -66,20 +66,6 @@ self.addEventListener('fetch', (event) => {
       return new Response('', { status: 504 });
     }
   })());
-});
-
-// Phase 5：背景同步事件
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'lb-reconcile') {
-    event.waitUntil((async () => {
-      const clients = await self.clients.matchAll();
-      for (const c of clients) c.postMessage({ type: 'lb:sync-trigger' });
-    })());
-  }
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data === 'lb:skipWaiting') self.skipWaiting();
 });
 
 // Phase 5：背景同步事件
