@@ -9,7 +9,7 @@
 
 // 每次 deploy bump；activate 內會刪除所有其他 cache。
 // 即使 bump 漏了，網路優先策略仍會讓使用者拿到新版。
-const CACHE_NAME = 'local-brain-v24-shell-v5';
+const CACHE_NAME = 'local-brain-v24-shell-v6';
 const SHELL = [
   './',
   './index.html',

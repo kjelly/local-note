@@ -51,7 +51,8 @@ describe('migration', () => {
     const all = await getAllNotes();
     expect(all).toHaveLength(2);
     const { noteView } = await import('../../src/model/note.js');
-    expect(noteView(all.find((n) => n.id === 1)).title).toBe('A');
+    // Phase 20：normalizeNote 把 id 統一為 string
+    expect(noteView(all.find((n) => n.id === '1')).title).toBe('A');
   });
 
   it('重跑 migration 不重複', async () => {
@@ -66,6 +67,7 @@ describe('migration', () => {
     const r = await runMigration();
     expect(r.migrated).toBe(1);
     const all = await getAllNotes();
-    expect(all[0].id).toBe(9);
+    // Phase 20：id 統一為 string
+    expect(all[0].id).toBe('9');
   });
 });

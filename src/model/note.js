@@ -20,7 +20,7 @@ export function createNote(partial = {}) {
   const deviceId = getDeviceId();
   const now = Date.now();
   return {
-    id: partial.id ?? uuidv7(),
+    id: String(partial.id ?? uuidv7()),
     createdAt: now,
     // LWW 欄位
     title:   makeField(partial.title ?? '', deviceId),
@@ -34,7 +34,9 @@ export function createNote(partial = {}) {
 // 從舊版 v23 物件做形態正規化
 export function normalizeNote(raw) {
   if (!raw || typeof raw !== 'object') return null;
-  const id = raw.id ?? uuidv7();
+  // 統一把 id 轉成 string（v23 用 Date.now() 為 number；HTML data-id 也是 string；
+  // 後續 uuidv7() 也是 string；統一 string 避免 === 比對失敗）
+  const id = String(raw.id ?? uuidv7());
   const deviceId = getDeviceId();
   const updatedAt = raw.updatedAtTs ?? Date.parse(raw.updatedAt) ?? Date.now();
   // 已是新格式
